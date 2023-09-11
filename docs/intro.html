@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Risk Python - 1&nbsp; Exploración y preparación de datos de préstamos</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./summary.html" rel="next">
+<link href="./index.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./intro.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Exploración y preparación de datos de préstamos</span></a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Risk Python</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Exploración y preparación de datos de préstamos</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Regresión logistica para incumplimiento</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#comprender-el-riesgo-créditicio" id="toc-comprender-el-riesgo-créditicio" class="nav-link active" data-scroll-target="#comprender-el-riesgo-créditicio"><span class="header-section-number">1.1</span> Comprender el riesgo créditicio</a>
+  <ul class="collapse">
+  <li><a href="#qué-es-el-riesgo-crediticio" id="toc-qué-es-el-riesgo-crediticio" class="nav-link" data-scroll-target="#qué-es-el-riesgo-crediticio"><span class="header-section-number">1.1.1</span> ¿Qué es el riesgo crediticio?</a></li>
+  </ul></li>
+  <li><a href="#pérdida-esperada" id="toc-pérdida-esperada" class="nav-link" data-scroll-target="#pérdida-esperada"><span class="header-section-number">1.2</span> Pérdida Esperada</a></li>
+  <li><a href="#tipos-de-datos-utilizados" id="toc-tipos-de-datos-utilizados" class="nav-link" data-scroll-target="#tipos-de-datos-utilizados"><span class="header-section-number">1.3</span> Tipos de datos utilizados</a>
+  <ul class="collapse">
+  <li><a href="#columnas-de-datos" id="toc-columnas-de-datos" class="nav-link" data-scroll-target="#columnas-de-datos"><span class="header-section-number">1.3.1</span> Columnas de datos</a></li>
+  </ul></li>
+  <li><a href="#explorando-con-tablas-cruzadas" id="toc-explorando-con-tablas-cruzadas" class="nav-link" data-scroll-target="#explorando-con-tablas-cruzadas"><span class="header-section-number">1.4</span> Explorando con tablas cruzadas</a></li>
+  <li><a href="#explorar-con-imágenes" id="toc-explorar-con-imágenes" class="nav-link" data-scroll-target="#explorar-con-imágenes"><span class="header-section-number">1.5</span> Explorar con Imágenes</a></li>
+  <li><a href="#resumen" id="toc-resumen" class="nav-link" data-scroll-target="#resumen"><span class="header-section-number">1.6</span> Resumen</a></li>
+  <li><a href="#ejercicio-en-python" id="toc-ejercicio-en-python" class="nav-link" data-scroll-target="#ejercicio-en-python"><span class="header-section-number">1.7</span> Ejercicio en Python</a></li>
+  <li><a href="#valores-atípicos-en-los-datos-crediticios" id="toc-valores-atípicos-en-los-datos-crediticios" class="nav-link" data-scroll-target="#valores-atípicos-en-los-datos-crediticios"><span class="header-section-number">1.8</span> Valores atípicos en los datos crediticios</a>
+  <ul class="collapse">
+  <li><a href="#valores-atípicos-y-rendimiento" id="toc-valores-atípicos-y-rendimiento" class="nav-link" data-scroll-target="#valores-atípicos-y-rendimiento"><span class="header-section-number">1.8.1</span> Valores atípicos y rendimiento</a></li>
+  <li><a href="#detectar-valores-atípicos-con-tablas-cruzadas" id="toc-detectar-valores-atípicos-con-tablas-cruzadas" class="nav-link" data-scroll-target="#detectar-valores-atípicos-con-tablas-cruzadas"><span class="header-section-number">1.8.2</span> Detectar valores atípicos con tablas cruzadas</a></li>
+  <li><a href="#eliminar-valores-atípicos" id="toc-eliminar-valores-atípicos" class="nav-link" data-scroll-target="#eliminar-valores-atípicos"><span class="header-section-number">1.8.3</span> Eliminar valores atípicos</a></li>
+  <li><a href="#practica" id="toc-practica" class="nav-link" data-scroll-target="#practica"><span class="header-section-number">1.8.4</span> Practica</a></li>
+  </ul></li>
+  <li><a href="#riesgos-con-datos-faltantes-en-los-datos-de-préstamo" id="toc-riesgos-con-datos-faltantes-en-los-datos-de-préstamo" class="nav-link" data-scroll-target="#riesgos-con-datos-faltantes-en-los-datos-de-préstamo"><span class="header-section-number">1.9</span> Riesgos con datos Faltantes en los datos de préstamo</a>
+  <ul class="collapse">
+  <li><a href="#qué-datos-faltan" id="toc-qué-datos-faltan" class="nav-link" data-scroll-target="#qué-datos-faltan"><span class="header-section-number">1.9.1</span> ¿Qué datos faltan?</a></li>
+  <li><a href="#similitudes-con-valores-atípicos" id="toc-similitudes-con-valores-atípicos" class="nav-link" data-scroll-target="#similitudes-con-valores-atípicos"><span class="header-section-number">1.9.2</span> Similitudes con valores atípicos</a></li>
+  <li><a href="#cómo-manejar-los-datos-faltantes" id="toc-cómo-manejar-los-datos-faltantes" class="nav-link" data-scroll-target="#cómo-manejar-los-datos-faltantes"><span class="header-section-number">1.9.3</span> Cómo manejar los datos faltantes</a></li>
+  <li><a href="#encontrar-datos-faltantes" id="toc-encontrar-datos-faltantes" class="nav-link" data-scroll-target="#encontrar-datos-faltantes"><span class="header-section-number">1.9.4</span> Encontrar datos faltantes</a></li>
+  <li><a href="#reemplazo-de-datos-faltantes" id="toc-reemplazo-de-datos-faltantes" class="nav-link" data-scroll-target="#reemplazo-de-datos-faltantes"><span class="header-section-number">1.9.5</span> Reemplazo de datos faltantes</a></li>
+  <li><a href="#eliminar-datos-faltantes" id="toc-eliminar-datos-faltantes" class="nav-link" data-scroll-target="#eliminar-datos-faltantes"><span class="header-section-number">1.9.6</span> Eliminar datos faltantes</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Exploración y preparación de datos de préstamos</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>En este primer capítulo discutiremos el concepto de riesgo de crédito y definiremos cómo se calcula. Utilizando tablas cruzadas y gráficos, expliraremos un conjunto de datos del mundo real. Antes de aplicar el aprendizaje automático (Machinne Learning), procesaremos estos datos encontrando y resolviendo problemas.</p>
+<section id="comprender-el-riesgo-créditicio" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="comprender-el-riesgo-créditicio"><span class="header-section-number">1.1</span> Comprender el riesgo créditicio</h2>
+<section id="qué-es-el-riesgo-crediticio" class="level3" data-number="1.1.1">
+<h3 data-number="1.1.1" class="anchored" data-anchor-id="qué-es-el-riesgo-crediticio"><span class="header-section-number">1.1.1</span> ¿Qué es el riesgo crediticio?</h3>
+<p>El riesgo crediticio es el riesgo de que alguien que ha pedido dinero prestado no lo pague todo. Piense en este riesgo como la diferencia entre prestar dinero a una persona y comprar un bono del gobierno. Con los bonos gubernamentales, es casi seguro que se reembolsarán, pero no cuando se presta dinero a la gente. Un préstamo está en mora cuando la agencia crediticia está razonablemente segura de que el préstamo no será reembolsado. Usaremos modelos de Machine Learning para determinar esto.</p>
+<p>Consideremos este ejemplo: hemos prestado 300 dólares a alguien que ha realizado dos pagos pero no el pago final.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Pago</th>
+<th>Fecha de Pago</th>
+<th>Estado del Préstamo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>$100</td>
+<td>15 de Junio</td>
+<td>Non-Default</td>
+</tr>
+<tr class="even">
+<td>$100</td>
+<td>15 de Julio</td>
+<td>Non-Default</td>
+</tr>
+<tr class="odd">
+<td>$0</td>
+<td>15 de Agosto</td>
+<td>Default</td>
+</tr>
+</tbody>
+</table>
+<p>Es en este punto cuando consideramos que el préstamo está en mora. Predecir esto de antemano nos resulta útil para estimar la pérdida esperada.</p>
+</section>
+</section>
+<section id="pérdida-esperada" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="pérdida-esperada"><span class="header-section-number">1.2</span> Pérdida Esperada</h2>
+<p>La pérdida esperada es la cantidad que la empresa pierde como resultado del incumplimiento de un préstamo. La pérdida esperada es un cálculo simple de los siguientes tres componentes.</p>
+<ul>
+<li><p><strong><em>La probabilidad de incumplimiento (PDI)</em></strong>, que es la probabilidad de que alguien incumpla con un préstamo.</p></li>
+<li><p>E<strong><em>xposición en caso de incumplimiento (EXI),</em></strong> que es el monto pendiente en el momento del incumplimiento.</p></li>
+<li><p><strong><em>La pérdida en caso de incumplimiento (PEI)</em></strong>, que es la relación entre la exposición y cualquier recuperación de la pérdida.</p></li>
+</ul>
+<p>Según nuestro ejemplo, los $100 que nos debían son nuestra exposicíon, y si vendemos esa deuda por $20, nuestra pérdida en caso de impago sería del 80% .</p>
+<p>La fórmula para la pérdida esperada es el producto de los tres componentes previos, es decir,</p>
+<p><span class="math display">\[
+expected\_loss = PDI\times EXI\times PEI
+\]</span></p>
+<p>Este curso se centrará en la probabilidad de incumplimiento.</p>
+</section>
+<section id="tipos-de-datos-utilizados" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="tipos-de-datos-utilizados"><span class="header-section-number">1.3</span> Tipos de datos utilizados</h2>
+<p>Para modelar la probabilidad de incumplimiento generalmente tenemos dos tipos principales de datos disponibles:</p>
+<ul>
+<li><p><strong><em>Los datos de la solicitud</em></strong>, que son datos que están directamente vinculados a la solicitud del préstamo, como la calificación del préstamo.</p></li>
+<li><p><strong>D<em>atos de comportamiento (Behavior)</em></strong>, describen al destinatario del préstamo, como la duracción de empleo</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Solicitud</th>
+<th>Comportamiento (behavior)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Tasa de interés</td>
+<td>Antiguedad del empleo</td>
+</tr>
+<tr class="even">
+<td>Calificación</td>
+<td>Incumplimiento Historico</td>
+</tr>
+<tr class="odd">
+<td>Cantidad</td>
+<td>Ingreso</td>
+</tr>
+</tbody>
+</table></li>
+</ul>
+<section id="columnas-de-datos" class="level3" data-number="1.3.1">
+<h3 data-number="1.3.1" class="anchored" data-anchor-id="columnas-de-datos"><span class="header-section-number">1.3.1</span> Columnas de datos</h3>
+<p>Los datos que utilizaremos para nuestras predicciones de probabilidad de incumplimiento incluyen una combinación. Esto es importante porque los datos de la aplicación (solicitud) no son tan buenos como los datos de la aplicación y el comportamiento (behavior) juntos. Entonces, se incluyen dos columnas que emulan los datos que se pueden comprar en las agencias de crédito.</p>
+<p>La adquisión de datos externos es una práctica común en la mayoría de las organizaciones. Estas son las columnas disponibles en el conjunto de datos.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Columna</th>
+<th>Columna</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ingresos</td>
+<td>Grado del préstamo</td>
+</tr>
+<tr class="even">
+<td>Edad</td>
+<td>Monto del préstamo</td>
+</tr>
+<tr class="odd">
+<td>Propiedad de vivienda</td>
+<td>Tasa de interés</td>
+</tr>
+<tr class="even">
+<td>Antiguedad Laboral</td>
+<td>Estado del préstamo</td>
+</tr>
+<tr class="odd">
+<td>Intención del préstamo</td>
+<td>Incumplimientos históricos</td>
+</tr>
+<tr class="even">
+<td>Porcentaje de ingresos</td>
+<td>Duración del historial crediticio</td>
+</tr>
+</tbody>
+</table>
+<p>Algunos ejemplos son: ingresos personales, porcentaje del monto del préstamo sobre los ingresos de la persona y duración del historial crediticio. Considere el porcentaje de ingresos. Esto podría afectar el estado del préstamo si el monto del préstamo es mayor que sus ingresos, porque es posible que no puedan hacer frente a los pagos.</p>
+</section>
+</section>
+<section id="explorando-con-tablas-cruzadas" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="explorando-con-tablas-cruzadas"><span class="header-section-number">1.4</span> Explorando con tablas cruzadas</h2>
+<p>Nuestros datos tienen 32 mil filas, lo que puede resultar difícil de ver todas a la vez.</p>
+<p>Primero cargamos los datos, de la siguiente manera en <code>Python</code>.</p>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>cr_loan <span class="op">=</span> pd.read_csv(<span class="st">"cr_loan2.csv"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>cr_loan.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="83">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">person_age</th>
+<th data-quarto-table-cell-role="th">person_income</th>
+<th data-quarto-table-cell-role="th">person_home_ownership</th>
+<th data-quarto-table-cell-role="th">person_emp_length</th>
+<th data-quarto-table-cell-role="th">loan_intent</th>
+<th data-quarto-table-cell-role="th">loan_grade</th>
+<th data-quarto-table-cell-role="th">loan_amnt</th>
+<th data-quarto-table-cell-role="th">loan_int_rate</th>
+<th data-quarto-table-cell-role="th">loan_status</th>
+<th data-quarto-table-cell-role="th">loan_percent_income</th>
+<th data-quarto-table-cell-role="th">cb_person_default_on_file</th>
+<th data-quarto-table-cell-role="th">cb_person_cred_hist_length</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>22</td>
+<td>59000</td>
+<td>RENT</td>
+<td>123.0</td>
+<td>PERSONAL</td>
+<td>D</td>
+<td>35000</td>
+<td>16.02</td>
+<td>1</td>
+<td>0.59</td>
+<td>Y</td>
+<td>3</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>21</td>
+<td>9600</td>
+<td>OWN</td>
+<td>5.0</td>
+<td>EDUCATION</td>
+<td>B</td>
+<td>1000</td>
+<td>11.14</td>
+<td>0</td>
+<td>0.10</td>
+<td>N</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>25</td>
+<td>9600</td>
+<td>MORTGAGE</td>
+<td>1.0</td>
+<td>MEDICAL</td>
+<td>C</td>
+<td>5500</td>
+<td>12.87</td>
+<td>1</td>
+<td>0.57</td>
+<td>N</td>
+<td>3</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>23</td>
+<td>65500</td>
+<td>RENT</td>
+<td>4.0</td>
+<td>MEDICAL</td>
+<td>C</td>
+<td>35000</td>
+<td>15.23</td>
+<td>1</td>
+<td>0.53</td>
+<td>N</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>24</td>
+<td>54400</td>
+<td>RENT</td>
+<td>8.0</td>
+<td>MEDICAL</td>
+<td>C</td>
+<td>35000</td>
+<td>14.27</td>
+<td>1</td>
+<td>0.55</td>
+<td>Y</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Importante mencionar que el paquete <code>pandas</code> nos permite manipular datos, dado que nuestros datos son tipo <code>.csv</code> entonces utilizamos la función <code>.read_csv()</code> de pandas. y por último la función <code>head()</code> nos permite ver las primeras 5 filas de nuestros conjunto de datos.</p>
+<p>Ahora bien, usaremos la función <code>crosstab()</code> de <code>pandas</code>. Podemos usar esta función para ayudar a obtener una vista de alto nivel de los datos similar a las tablas dinámicas en <code>Excel</code>.</p>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pd.crosstab(cr_loan[<span class="st">"person_home_ownership"</span>], cr_loan[<span class="st">"loan_status"</span>], </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>values <span class="op">=</span> cr_loan[<span class="st">"loan_int_rate"</span>], aggfunc <span class="op">=</span> <span class="st">"mean"</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="84">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">loan_status</th>
+<th data-quarto-table-cell-role="th">0</th>
+<th data-quarto-table-cell-role="th">1</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">person_home_ownership</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">MORTGAGE</td>
+<td>10.06</td>
+<td>13.43</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">OTHER</td>
+<td>11.41</td>
+<td>13.56</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">OWN</td>
+<td>10.75</td>
+<td>12.24</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">RENT</td>
+<td>10.75</td>
+<td>12.97</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Aquí, vemos que los datos se agruparon por estado del préstamo y propiedad de la vivienda, y luego se calculó la tasa de interés promedio.</p>
+</section>
+<section id="explorar-con-imágenes" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="explorar-con-imágenes"><span class="header-section-number">1.5</span> Explorar con Imágenes</h2>
+<p>Además de utilizar tablas cruzadas, podemos explorar el conjunto de datos visualmente. Para ello usaremos el paquete <code>matplotlib</code> para crear un diagrama de dispersión de la tasa de interés del préstamo y los ingresos del destinatario.</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(cr_loan[<span class="st">"person_income"</span>], cr_loan[<span class="st">"loan_int_rate"</span>], c <span class="op">=</span> <span class="st">"blue"</span>, alpha <span class="op">=</span> <span class="fl">0.5</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Ingreso Personal"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Tasa de interés del préstamo"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="intro_files/figure-html/cell-4-output-1.png" width="598" height="429"></p>
+</div>
+</div>
+<p>Al igual que la tabla cruzada, los gráficos nos ayudan a obtener una vista de alto nivel de nuestros datos.</p>
+</section>
+<section id="resumen" class="level2" data-number="1.6">
+<h2 data-number="1.6" class="anchored" data-anchor-id="resumen"><span class="header-section-number">1.6</span> Resumen</h2>
+<ul>
+<li><p>Hemos definido el riesgo crediticio , los componentes de la pérdida esperada y los métodos para explorar los datos del riesgo crediticio con la intención de estimar la probabilidad de incumplimiento.</p></li>
+<li><p>Ahora practiquemos un poco con Python.</p></li>
+</ul>
+</section>
+<section id="ejercicio-en-python" class="level2" data-number="1.7">
+<h2 data-number="1.7" class="anchored" data-anchor-id="ejercicio-en-python"><span class="header-section-number">1.7</span> Ejercicio en Python</h2>
+<p>Conozcamos la estructura de los datos imprimiendola con ayuda de Python.</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(cr_loan.dtypes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>person_age                      int64
+person_income                   int64
+person_home_ownership          object
+person_emp_length             float64
+loan_intent                    object
+loan_grade                     object
+loan_amnt                       int64
+loan_int_rate                 float64
+loan_status                     int64
+loan_percent_income           float64
+cb_person_default_on_file      object
+cb_person_cred_hist_length      int64
+dtype: object</code></pre>
+</div>
+</div>
+<p>Miremos las primeras cinco filas de los datos.</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(cr_loan.head())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   person_age  person_income person_home_ownership  person_emp_length  \
+0          22          59000                  RENT              123.0   
+1          21           9600                   OWN                5.0   
+2          25           9600              MORTGAGE                1.0   
+3          23          65500                  RENT                4.0   
+4          24          54400                  RENT                8.0   
+
+  loan_intent loan_grade  loan_amnt  loan_int_rate  loan_status  \
+0    PERSONAL          D      35000          16.02            1   
+1   EDUCATION          B       1000          11.14            0   
+2     MEDICAL          C       5500          12.87            1   
+3     MEDICAL          C      35000          15.23            1   
+4     MEDICAL          C      35000          14.27            1   
+
+   loan_percent_income cb_person_default_on_file  cb_person_cred_hist_length  
+0                 0.59                         Y                           3  
+1                 0.10                         N                           2  
+2                 0.57                         N                           3  
+3                 0.53                         N                           2  
+4                 0.55                         Y                           4  </code></pre>
+</div>
+</div>
+<p>Veamos la distribución de montos de préstamo con un histograma.</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>n, <span class="bu">bin</span>, patches <span class="op">=</span> plt.hist(x <span class="op">=</span> cr_loan[<span class="st">"loan_amnt"</span>], bins <span class="op">=</span> <span class="st">"auto"</span>, color <span class="op">=</span> <span class="st">"blue"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span>, rwidth <span class="op">=</span> <span class="fl">0.85</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Monto del préstamo"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>plt.show( )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="intro_files/figure-html/cell-7-output-1.png" width="583" height="430"></p>
+</div>
+</div>
+<p>Creemos un diagrama de dispersión de los ingresos y la edad de una persona. En este caso, el ingreso es la variable independiente y la edad es la variable dependiente.</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(cr_loan[<span class="st">'person_income'</span>], cr_loan[<span class="st">'person_age'</span>],c<span class="op">=</span><span class="st">'blue'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Personal Income'</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Persone Age'</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="intro_files/figure-html/cell-8-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<p>Creemos una tabla cruzada de la intención del préstamo y el estado del préstamo.</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pd.crosstab(cr_loan[<span class="st">"loan_intent"</span>], cr_loan[<span class="st">"loan_status"</span>], margins <span class="op">=</span> <span class="va">True</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>loan_status            0     1    All
+loan_intent                          
+DEBTCONSOLIDATION   3722  1490   5212
+EDUCATION           5342  1111   6453
+HOMEIMPROVEMENT     2664   941   3605
+MEDICAL             4450  1621   6071
+PERSONAL            4423  1098   5521
+VENTURE             4872   847   5719
+All                25473  7108  32581</code></pre>
+</div>
+</div>
+<p>Ahora creemos una tabla cruzada de propiedad de vivienda agrupada por <strong>loan_status</strong> y <strong>loan_grade:</strong></p>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pd.crosstab(cr_loan[<span class="st">"person_home_ownership"</span>],[cr_loan[<span class="st">"loan_status"</span>],cr_loan[<span class="st">"loan_grade"</span>]]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>loan_status               0                                 1             \
+loan_grade                A     B     C    D    E   F  G    A     B    C   
+person_home_ownership                                                      
+MORTGAGE               5219  3729  1934  658  178  36  0  239   324  321   
+OTHER                    23    29    11    9    2   0  0    3     5    6   
+OWN                     860   770   464  264   26   7  0   66    34   31   
+RENT                   3602  4222  2710  554  137  28  1  765  1338  981   
+
+loan_status                               
+loan_grade                D    E   F   G  
+person_home_ownership                     
+MORTGAGE                553  161  61  31  
+OTHER                    11    6   2   0  
+OWN                      18   31   8   5  
+RENT                   1559  423  99  27  </code></pre>
+</div>
+</div>
+<p>Tabla cruzada de home_ownership, con loan_status y promedio de loan_percent_income</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pd.crosstab(cr_loan[<span class="st">"person_home_ownership"</span>], cr_loan[<span class="st">"loan_status"</span>],</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>              values<span class="op">=</span>cr_loan[<span class="st">"loan_percent_income"</span>], aggfunc<span class="op">=</span><span class="st">"mean"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>loan_status                   0         1
+person_home_ownership                    
+MORTGAGE               0.146504  0.184882
+OTHER                  0.143784  0.300000
+OWN                    0.180013  0.297358
+RENT                   0.144611  0.264859</code></pre>
+</div>
+</div>
+<p>Por último cree un diagrama de caja del porcentaje del préstamo de los ingresos de la persona agrupada por loan_status</p>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>cr_loan.boxplot(column <span class="op">=</span> [<span class="st">'loan_percent_income'</span>], by <span class="op">=</span> <span class="st">'loan_status'</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Average Percent Income by Loan Status'</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">''</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="intro_files/figure-html/cell-12-output-1.png" width="587" height="440"></p>
+</div>
+</div>
+</section>
+<section id="valores-atípicos-en-los-datos-crediticios" class="level2" data-number="1.8">
+<h2 data-number="1.8" class="anchored" data-anchor-id="valores-atípicos-en-los-datos-crediticios"><span class="header-section-number">1.8</span> Valores atípicos en los datos crediticios</h2>
+<p>Como ocurre con cualquier probelma de Machine Learning, la preparación de datos es el primer paso. ¿Pero por qué? cuando nuestros datos están preparados adecuadamente, reducimos el tiempo de entrenamiento de nuestros modelos de aprendizaje automático. Además, los datos preparados también pueden tener un impacto positivo en el rendimiento de nuestro modelo. Esto es importante porque queremos que nuestros modelos predigan los incumplimientos correctamente con la mayor frecuencia posible. Considere este gráfico de la República de China.</p>
+<p><img src="fig1.png" class="img-fluid"></p>
+<p>Este muestra la precisión de tres modelos diferentes sobre los mismos datos en diferentes etapas de procesamiento. La línea azul claro representa un modelo entrenado con datos ordenados y preparados, mientras que el modelo de la línea naranja se entrenó con datos sin procesar. La línea azul claro representa el modelo más preciso, porque la curva está más cerca de la esquina superior izquierda. Veremos más gráficos como este más adelante cuando verifiquemos la precisión de nuestros modelos.</p>
+<section id="valores-atípicos-y-rendimiento" class="level3" data-number="1.8.1">
+<h3 data-number="1.8.1" class="anchored" data-anchor-id="valores-atípicos-y-rendimiento"><span class="header-section-number">1.8.1</span> Valores atípicos y rendimiento</h3>
+<p>El primer tipo de preparación que veremos es la detección y eliminación de valores atípicos. Desafortunadamente, los sistemas de entrada de datos que producen datos incorrectos son bastante comunes. Si el especialista en ingreso de datos estaba cansado o distraído, puede ingresar valores incorrectos en nuestro sistema. También es posible que las herramientas de ingestas de datos creen valores erróneos en nuestros datos como resultado de problemas técnicos o fallas del sistema.</p>
+<table class="table">
+<colgroup>
+<col style="width: 26%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Entradas (Feature)</th>
+<th>Coeficiente con valores atípicos</th>
+<th>Coeficientes sin valores atípicos</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Tasa de interés</td>
+<td>0.2</td>
+<td>0.01</td>
+</tr>
+<tr class="even">
+<td>Antiguedad Laboral</td>
+<td>0.5</td>
+<td>0.6</td>
+</tr>
+<tr class="odd">
+<td>Ingresos</td>
+<td>0.6</td>
+<td>0.75</td>
+</tr>
+</tbody>
+</table>
+<p>Con valores atípicos en nuestros datos de entrenamiento, nuestros modelos predictivos tendrán dificultades para estimar parámetros como los coeficientes. Esto puede hacer que nuestros modelos no predigan tantos incumplimientos. Piense en los coeficientes como cuánto se pondera cada columna o característica para determinar el estado del préstamo. Observe las diferencias de coeficientes en el ejemplo de la tabla. Es posible que los valores atíplicos en la tasa de interés pueden hacer que esa columna tenga mucho más peso de lo normal. Esto afectará las predicciones.</p>
+</section>
+<section id="detectar-valores-atípicos-con-tablas-cruzadas" class="level3" data-number="1.8.2">
+<h3 data-number="1.8.2" class="anchored" data-anchor-id="detectar-valores-atípicos-con-tablas-cruzadas"><span class="header-section-number">1.8.2</span> Detectar valores atípicos con tablas cruzadas</h3>
+<p>Una forma de detectar valores atípicos es utilizar tablas cruzadas con funciones agregadas como las que ya hemos mostrados en la sección anterior.</p>
+<p>Aquí utilizaremos una tabla cruzada de los datos de nuestros préstamos de crédito como antes para encontrar la tasa de interés promedio.</p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>pd.crosstab(cr_loan[<span class="st">"person_home_ownership"</span>], cr_loan[<span class="st">"loan_status"</span>],</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>values <span class="op">=</span> cr_loan[<span class="st">"loan_int_rate"</span>], aggfunc <span class="op">=</span> <span class="st">"mean"</span>).<span class="bu">round</span>(<span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="94">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">loan_status</th>
+<th data-quarto-table-cell-role="th">0</th>
+<th data-quarto-table-cell-role="th">1</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">person_home_ownership</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">MORTGAGE</td>
+<td>10.06</td>
+<td>13.43</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">OTHER</td>
+<td>11.41</td>
+<td>13.56</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">OWN</td>
+<td>10.75</td>
+<td>12.24</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">RENT</td>
+<td>10.75</td>
+<td>12.97</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Para este ejemplo, podríamos esperar ver valores a la izquierda con nuestros datos normales. Sin embargo, tal como se muestra en la figura de abajo, podría haber algunos valores extremos en los datos que darían como resultado los datos de la derecha de la imagen. Esto causaría problemas con el modelado. Imaginese tener una tasa de interés del 50%.</p>
+<p><img src="fig2.png" class="img-fluid"></p>
+<p>Otra forma de detectar valores atípicos es utilizar imagenes. Para ello podemos utilizar fácilmente gráficos como histogramas y diagramas de dispersión, que vimos previamente. }</p>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(cr_loan[<span class="st">'person_emp_length'</span>], cr_loan[<span class="st">'loan_int_rate'</span>],c<span class="op">=</span><span class="st">'blue'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Duración de empleo de persona'</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Tasa de interés del préstamo'</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="intro_files/figure-html/cell-14-output-1.png" width="598" height="430"></p>
+</div>
+</div>
+<p>Aquí, podemos ver que un par de registros tienen la duración del empleo de una persona establecida en más de 100 años. Esto sugeriría que dos solicitantes de préstamo tienen más de 136 años. Esto, al menos por ahora, no es posible.</p>
+</section>
+<section id="eliminar-valores-atípicos" class="level3" data-number="1.8.3">
+<h3 data-number="1.8.3" class="anchored" data-anchor-id="eliminar-valores-atípicos"><span class="header-section-number">1.8.3</span> Eliminar valores atípicos</h3>
+<p>Sabemos que los valores atípicos son un problema y queremos eliminarlos, pero ¿cómo? Podemos usar fácilmente el método <code>drop()</code> del paquete <code>pandas</code> para eliminar filas de nuestros datos.</p>
+<p>Primero usamos un subconjunto básico de Python para encontrar filas con una duración de empleo de nuestra persona mayor a 60.</p>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>indices <span class="op">=</span> cr_loan[cr_loan[<span class="st">"person_emp_length"</span>] <span class="op">&gt;=</span> <span class="dv">60</span>].index</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>cr_loan.drop(indices, inplace <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Lo que esto devuelve es la posición del índice de esa fila en nuestro marco de datos. A partir, de ahí, llamamos al método drop en nuestro marco de datos para que elimine las filas del marco de datos que coindicen con las posiciones de índice encontradas anteriormente.</p>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(cr_loan[<span class="st">'person_emp_length'</span>], cr_loan[<span class="st">'loan_int_rate'</span>],c<span class="op">=</span><span class="st">'blue'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Duración de empleo de persona'</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Tasa de interés del préstamo'</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="intro_files/figure-html/cell-16-output-1.png" width="598" height="430"></p>
+</div>
+</div>
+<p>Ahora podemos ver visualmente que los valores atípicos se han eliminado según nuestros criterios y los datos parecen mucho más realistas.</p>
+</section>
+<section id="practica" class="level3" data-number="1.8.4">
+<h3 data-number="1.8.4" class="anchored" data-anchor-id="practica"><span class="header-section-number">1.8.4</span> Practica</h3>
+<p>Imprimamos la tabla cruzada de <strong>loan_status</strong> y <strong>person_home_ownership</strong> con el máximo de <strong>person_emp_length</strong></p>
+<div class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pd.crosstab(cr_loan[<span class="st">"loan_status"</span>],cr_loan[<span class="st">"person_home_ownership"</span>],</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>        values<span class="op">=</span>cr_loan[<span class="st">"person_emp_length"</span>], aggfunc<span class="op">=</span><span class="st">"max"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>person_home_ownership  MORTGAGE  OTHER   OWN  RENT
+loan_status                                       
+0                          38.0   24.0  31.0  41.0
+1                          34.0   11.0  17.0  27.0</code></pre>
+</div>
+</div>
+<p>Muy bien. Ahora, creemos una matriz de índices para registros con una duración de empleo (person_emp_length) superior a 60 y guardelo como indices.</p>
+<div class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>indices <span class="op">=</span> cr_loan[cr_loan[<span class="st">"person_emp_length"</span>] <span class="op">&gt;</span> <span class="dv">60</span>].index</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Eliminemos los registros de los datos usando la matriz de <code>indices</code> y cree un nuevo marco de datos llamado <code>cr_loan_new.</code></p>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>cr_loan_new <span class="op">=</span> cr_loan.drop(indices)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Impriamos la tabla cruzada de antes, pero en su lugar usemos ambos <code>min</code> y <code>max</code>.</p>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pd.crosstab(cr_loan_new[<span class="st">'loan_status'</span>],cr_loan_new[<span class="st">'person_home_ownership'</span>],</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>            values<span class="op">=</span>cr_loan_new[<span class="st">'person_emp_length'</span>], aggfunc<span class="op">=</span>[<span class="st">'min'</span>,<span class="st">'max'</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                           min                      max                  
+person_home_ownership MORTGAGE OTHER  OWN RENT MORTGAGE OTHER   OWN  RENT
+loan_status                                                              
+0                          0.0   0.0  0.0  0.0     38.0  24.0  31.0  41.0
+1                          0.0   0.0  0.0  0.0     34.0  11.0  17.0  27.0</code></pre>
+</div>
+</div>
+<p>Visualicemos un diagrama de dispersión de la edad de la persona en el eje x y loan_amnt en el eje y.</p>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(cr_loan[<span class="st">'person_age'</span>], cr_loan[<span class="st">'loan_amnt'</span>], c<span class="op">=</span><span class="st">'blue'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Person Age"</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Loan Amount"</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="intro_files/figure-html/cell-21-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<p>Ahora utilicemos <code>.drop()</code> para eliminar los valores atípicos y crear <strong><em>cr_loan_new</em></strong>.</p>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>cr_loan_new <span class="op">=</span> cr_loan.drop(cr_loan[cr_loan[<span class="st">'person_age'</span>] <span class="op">&gt;</span> <span class="dv">100</span>].index)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Cree un diagrama de dispersión de la edad en el eje x y la tasa de interés del préstamo en el eje y con una etiqueta para loan_status.</p>
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">"blue"</span>,<span class="st">"red"</span>]</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>plt.scatter(cr_loan_new[<span class="st">'person_age'</span>], cr_loan_new[<span class="st">'loan_int_rate'</span>],</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>            c <span class="op">=</span> cr_loan_new[<span class="st">'loan_status'</span>],</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>            cmap <span class="op">=</span> matplotlib.colors.ListedColormap(colors),</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>            alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Person Age"</span>)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Loan Interest Rate"</span>)</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="intro_files/figure-html/cell-23-output-1.png" width="597" height="429"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="riesgos-con-datos-faltantes-en-los-datos-de-préstamo" class="level2" data-number="1.9">
+<h2 data-number="1.9" class="anchored" data-anchor-id="riesgos-con-datos-faltantes-en-los-datos-de-préstamo"><span class="header-section-number">1.9</span> Riesgos con datos Faltantes en los datos de préstamo</h2>
+<p>Una vez eliminados los valores atípicos de nuestro conjunto de datos, ahora podemos centrarnos en otro problema con los datos crediticios y es cuando faltan datos.</p>
+<section id="qué-datos-faltan" class="level3" data-number="1.9.1">
+<h3 data-number="1.9.1" class="anchored" data-anchor-id="qué-datos-faltan"><span class="header-section-number">1.9.1</span> ¿Qué datos faltan?</h3>
+<p>Normalmente, podría pensar que faltan datos cuando falta una fila completa, pero esa no es la única forma en que pueden faltar datos. Es posible que falten datos cuando hay valores nulos en lugar de valores reales. También puede ser una cadena vacía en lugar de una cadena real. En este curso, nos referimos a datos faltantes cuando no estén presentes valores específicos, no cuando falten filas enteras de datos.</p>
+<p>Si vemos una fila de datos con valores faltantes en un marco de datos de Pandas, se verá así.</p>
+<p><img src="fig3.png" class="img-fluid"></p>
+<p>Vemos NAN, en el campo de duración de empleo, en lugar de un valor.</p>
+</section>
+<section id="similitudes-con-valores-atípicos" class="level3" data-number="1.9.2">
+<h3 data-number="1.9.2" class="anchored" data-anchor-id="similitudes-con-valores-atípicos"><span class="header-section-number">1.9.2</span> Similitudes con valores atípicos</h3>
+<p>Un problema relacionado con los datos faltantes es similar a los probelmas causados por los valores atípicos en el sentido de que afecta negativamente el rendimiento del modelo predictivo. Puede sesgar nuestro modelo de maneras imprevistas, lo que puede afectar la forma en que predecimos los incumplimientos. Esto podría llevarnos a predecir una gran cantidad de incumplimientos que en realidad no son incumplimientos porque el modelo está sesgado hacia los incumplimientos. Además, muchos modelos de aprendizaje automático en Python no ignoran automáticamente los valores faltantes y, a menudo, arrojan errores y dejan de entrenar.</p>
+<p>A continuación se muestran algunos ejemplos de datos faltantes y posibles resultados. Si hay valores nulos en columnas numéricas o de cadena , el modelo arrojará un error.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Tipo dato missing</th>
+<th>Posible Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>NULL en columna numerica</td>
+<td>Error</td>
+</tr>
+<tr class="even">
+<td>NULL en columna string</td>
+<td>Error</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="cómo-manejar-los-datos-faltantes" class="level3" data-number="1.9.3">
+<h3 data-number="1.9.3" class="anchored" data-anchor-id="cómo-manejar-los-datos-faltantes"><span class="header-section-number">1.9.3</span> Cómo manejar los datos faltantes</h3>
+<p>Entonces, ¿cómo manejamos los datos faltantes? En la mayoría de los casos se trata de tres maneras. A veces necesitamos reemplazar los valores faltantes. Esto podría reemplazar un valor nulo con el promedio de esa columna. Otras veces eliminamos la fila con datos faltantes todos juntos. Por ejemplo, si hay valores nulos en el monto del préstamo, debes eliminar esas filas por completo. A veces también nos faltan valores. Este, sin embargo, no es el caso con la mayoría de los datos de préstamos. Comprender los datos lo dirigirá hacia una de estas tres acciones.</p>
+<ul>
+<li><p>Por ejemplo, si el estado del préstamo es nulo, es posible que el préstamo se haya procesado recientemente en nuestro sistema.</p></li>
+<li><p>A veces hay un retraso en los datos y se necesita tiempo adicional para el procesamiento. En este caso, deberíamos eliminar toda la fila.</p></li>
+<li><p>Otro ejemplo es cuando falta la edad de la persona. Aquí, podríamos reemplazar los valores de edad que faltan con la mediana de la edad de todos.</p></li>
+</ul>
+<table class="table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 34%">
+<col style="width: 37%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Missing Data</th>
+<th>Interpretación</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>NULL in <strong><em>loan_status</em></strong></td>
+<td>Préstamo recientemente aprovado</td>
+<td>Eliminar de los datos de predicción</td>
+</tr>
+<tr class="even">
+<td>NULL in <strong><em>person_age</em></strong></td>
+<td>Edad no registrada ni revelada</td>
+<td>Reemplazar con mediana</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="encontrar-datos-faltantes" class="level3" data-number="1.9.4">
+<h3 data-number="1.9.4" class="anchored" data-anchor-id="encontrar-datos-faltantes"><span class="header-section-number">1.9.4</span> Encontrar datos faltantes</h3>
+<p>Pero, ¿cómo encontramos los datos faltantes? Con <code>Pandas</code>, podemos encontrar datos faltantes como nulos usando la función <code>isnull()</code> y la función de <code>sum()</code> para contar las filas a las que les faltan datos. Al combinar las funciones <code>isnull</code>, <code>sum</code> y <code>any</code>, contamos todos los valores nulos en cada columna.</p>
+<div class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>null_columns <span class="op">=</span> cr_loan.columns[cr_loan.isnull().<span class="bu">any</span>()]</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>cr_loan[null_columns].isnull().<span class="bu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="105">
+<pre><code>person_emp_length     895
+loan_int_rate        3116
+dtype: int64</code></pre>
+</div>
+</div>
+<p>Como puede notar, esto produce una tabla que muestra el recuento de registros con valores nulos en los datos.</p>
+</section>
+<section id="reemplazo-de-datos-faltantes" class="level3" data-number="1.9.5">
+<h3 data-number="1.9.5" class="anchored" data-anchor-id="reemplazo-de-datos-faltantes"><span class="header-section-number">1.9.5</span> Reemplazo de datos faltantes</h3>
+<p>Si decidimos reemplazar los datos faltantes, podemos llamar al método <code>.fillna()</code> de pandas junto con funciones agregadas. Esto reemplazará solo los valores faltantes.</p>
+<p>En este ejemplo, que muestraré a continuación, reemplazamos las tasas de interés nulas con el promedio de todas las tasas de interés en los datos.</p>
+<div class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>cr_loan[<span class="st">"loan_int_rate"</span>].fillna((cr_loan[<span class="st">"loan_int_rate"</span>].mean()), inplace <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><br>
+Puede notar que el resultado es que ya no tenemos datos nulos en la variable <code>loan_int_rate</code></p>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>null_columns <span class="op">=</span> cr_loan.columns[cr_loan.isnull().<span class="bu">any</span>()]</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>cr_loan[null_columns].isnull().<span class="bu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="107">
+<pre><code>person_emp_length    895
+dtype: int64</code></pre>
+</div>
+</div>
+</section>
+<section id="eliminar-datos-faltantes" class="level3" data-number="1.9.6">
+<h3 data-number="1.9.6" class="anchored" data-anchor-id="eliminar-datos-faltantes"><span class="header-section-number">1.9.6</span> Eliminar datos faltantes</h3>
+<p>Eliminar filas con datos faltantes es como eliminar filas con valores atípicos, como el el video anterior. Usamos el método de caída de <code>pandas</code>. Aquí, encontramos las filas con datos faltantes usando <code>isnull</code> y luego eliminamos las filas del conjunto de datos por completo.</p>
+<div class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>indices <span class="op">=</span> cr_loan[<span class="st">"person_emp_length"</span>].isnull().index</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>cr_loan.drop(indices, inplace <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>null_columns <span class="op">=</span> cr_loan.columns[cr_loan.isnull().<span class="bu">any</span>()]</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>cr_loan[null_columns].isnull().<span class="bu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="109">
+<pre><code>Series([], dtype: float64)</code></pre>
+</div>
+</div>
+<p>Entonces, hemos aprendido qué son los datos faltantes, cómo manejarlos y algunos ejemplos de cómo los procesaremos.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./index.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Preface</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./summary.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Regresión logistica para incumplimiento</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>

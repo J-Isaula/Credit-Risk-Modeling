@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Risk Python - 2&nbsp; Regresión logistica para incumplimiento</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./references.html" rel="next">
+<link href="./intro.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./summary.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Regresión logistica para incumplimiento</span></a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Risk Python</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Exploración y preparación de datos de préstamos</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./summary.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Regresión logistica para incumplimiento</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#regresión-logística-para-la-probabilidad-de-incumplimiento" id="toc-regresión-logística-para-la-probabilidad-de-incumplimiento" class="nav-link active" data-scroll-target="#regresión-logística-para-la-probabilidad-de-incumplimiento"><span class="header-section-number">2.1</span> Regresión logística para la probabilidad de incumplimiento</a>
+  <ul class="collapse">
+  <li><a href="#probabilidad-de-incumplimiento" id="toc-probabilidad-de-incumplimiento" class="nav-link" data-scroll-target="#probabilidad-de-incumplimiento"><span class="header-section-number">2.1.1</span> Probabilidad de incumplimiento</a></li>
+  <li><a href="#predecir-probabilidades" id="toc-predecir-probabilidades" class="nav-link" data-scroll-target="#predecir-probabilidades"><span class="header-section-number">2.1.2</span> Predecir probabilidades</a></li>
+  <li><a href="#regresión-logística" id="toc-regresión-logística" class="nav-link" data-scroll-target="#regresión-logística"><span class="header-section-number">2.1.3</span> Regresión Logística</a></li>
+  <li><a href="#entrenar-una-regresión-logística" id="toc-entrenar-una-regresión-logística" class="nav-link" data-scroll-target="#entrenar-una-regresión-logística"><span class="header-section-number">2.1.4</span> Entrenar una regresión logística</a></li>
+  <li><a href="#entrenamiento-y-prueba" id="toc-entrenamiento-y-prueba" class="nav-link" data-scroll-target="#entrenamiento-y-prueba"><span class="header-section-number">2.1.5</span> Entrenamiento y prueba</a></li>
+  <li><a href="#crear-los-conjuntos-de-entrenamiento-y-prueba" id="toc-crear-los-conjuntos-de-entrenamiento-y-prueba" class="nav-link" data-scroll-target="#crear-los-conjuntos-de-entrenamiento-y-prueba"><span class="header-section-number">2.1.6</span> Crear los conjuntos de entrenamiento y prueba</a></li>
+  <li><a href="#practica" id="toc-practica" class="nav-link" data-scroll-target="#practica"><span class="header-section-number">2.1.7</span> Practica</a></li>
+  <li><a href="#regresión-logística-multivariada" id="toc-regresión-logística-multivariada" class="nav-link" data-scroll-target="#regresión-logística-multivariada"><span class="header-section-number">2.1.8</span> Regresión logística multivariada</a></li>
+  </ul></li>
+  <li><a href="#predecir-la-probabilidad-de-incumplimiento" id="toc-predecir-la-probabilidad-de-incumplimiento" class="nav-link" data-scroll-target="#predecir-la-probabilidad-de-incumplimiento"><span class="header-section-number">2.2</span> Predecir la probabilidad de incumplimiento</a>
+  <ul class="collapse">
+  <li><a href="#coeficientes-de-regresión-logística" id="toc-coeficientes-de-regresión-logística" class="nav-link" data-scroll-target="#coeficientes-de-regresión-logística"><span class="header-section-number">2.2.1</span> Coeficientes de regresión logística</a></li>
+  <li><a href="#interpretación-de-coeficientes" id="toc-interpretación-de-coeficientes" class="nav-link" data-scroll-target="#interpretación-de-coeficientes"><span class="header-section-number">2.2.2</span> Interpretación de coeficientes</a></li>
+  <li><a href="#usar-columnas-no-numéricas" id="toc-usar-columnas-no-numéricas" class="nav-link" data-scroll-target="#usar-columnas-no-numéricas"><span class="header-section-number">2.2.3</span> Usar columnas no numéricas</a></li>
+  <li><a href="#codificación-one-hot" id="toc-codificación-one-hot" class="nav-link" data-scroll-target="#codificación-one-hot"><span class="header-section-number">2.2.4</span> Codificación one-hot</a></li>
+  <li><a href="#función-get-dummies" id="toc-función-get-dummies" class="nav-link" data-scroll-target="#función-get-dummies"><span class="header-section-number">2.2.5</span> Función Get dummies</a></li>
+  <li><a href="#prediciendo-el-futuro" id="toc-prediciendo-el-futuro" class="nav-link" data-scroll-target="#prediciendo-el-futuro"><span class="header-section-number">2.2.6</span> Prediciendo el futuro</a></li>
+  <li><a href="#práctica" id="toc-práctica" class="nav-link" data-scroll-target="#práctica"><span class="header-section-number">2.2.7</span> Práctica</a></li>
+  <li><a href="#recordemos-como-predecir-la-probabilidad-de-incumplimiento" id="toc-recordemos-como-predecir-la-probabilidad-de-incumplimiento" class="nav-link" data-scroll-target="#recordemos-como-predecir-la-probabilidad-de-incumplimiento"><span class="header-section-number">2.2.8</span> Recordemos como predecir la probabilidad de incumplimiento</a></li>
+  </ul></li>
+  <li><a href="#desempeño-del-modelo-de-crédito" id="toc-desempeño-del-modelo-de-crédito" class="nav-link" data-scroll-target="#desempeño-del-modelo-de-crédito"><span class="header-section-number">2.3</span> Desempeño del modelo de crédito</a>
+  <ul class="collapse">
+  <li><a href="#puntuación-de-la-presición-accurary-del-modelo" id="toc-puntuación-de-la-presición-accurary-del-modelo" class="nav-link" data-scroll-target="#puntuación-de-la-presición-accurary-del-modelo"><span class="header-section-number">2.3.1</span> Puntuación de la presición (accurary) del modelo</a></li>
+  <li><a href="#gráficos-de-curvas-roc" id="toc-gráficos-de-curvas-roc" class="nav-link" data-scroll-target="#gráficos-de-curvas-roc"><span class="header-section-number">2.3.2</span> Gráficos de curvas ROC</a></li>
+  <li><a href="#umbrales-predeterminados" id="toc-umbrales-predeterminados" class="nav-link" data-scroll-target="#umbrales-predeterminados"><span class="header-section-number">2.3.3</span> Umbrales Predeterminados</a></li>
+  <li><a href="#establecer-un-umbral" id="toc-establecer-un-umbral" class="nav-link" data-scroll-target="#establecer-un-umbral"><span class="header-section-number">2.3.4</span> Establecer un umbral</a></li>
+  <li><a href="#informes-de-clasificación-crediticia" id="toc-informes-de-clasificación-crediticia" class="nav-link" data-scroll-target="#informes-de-clasificación-crediticia"><span class="header-section-number">2.3.5</span> Informes de clasificación crediticia</a></li>
+  <li><a href="#seleccionar-métricas-de-clasificación" id="toc-seleccionar-métricas-de-clasificación" class="nav-link" data-scroll-target="#seleccionar-métricas-de-clasificación"><span class="header-section-number">2.3.6</span> Seleccionar métricas de clasificación</a></li>
+  <li><a href="#práctica-1" id="toc-práctica-1" class="nav-link" data-scroll-target="#práctica-1"><span class="header-section-number">2.3.7</span> Práctica</a></li>
+  </ul></li>
+  <li><a href="#modelo-de-discriminación-e-impacto" id="toc-modelo-de-discriminación-e-impacto" class="nav-link" data-scroll-target="#modelo-de-discriminación-e-impacto"><span class="header-section-number">2.4</span> Modelo de discriminación e impacto</a>
+  <ul class="collapse">
+  <li><a href="#matrices-de-confusión" id="toc-matrices-de-confusión" class="nav-link" data-scroll-target="#matrices-de-confusión"><span class="header-section-number">2.4.1</span> Matrices de confusión</a></li>
+  <li><a href="#retiro-predeterminado-para-el-estado-del-préstamo" id="toc-retiro-predeterminado-para-el-estado-del-préstamo" class="nav-link" data-scroll-target="#retiro-predeterminado-para-el-estado-del-préstamo"><span class="header-section-number">2.4.2</span> Retiro predeterminado para el estado del préstamo</a></li>
+  <li><a href="#recordar-el-impacto-de-la-cartera" id="toc-recordar-el-impacto-de-la-cartera" class="nav-link" data-scroll-target="#recordar-el-impacto-de-la-cartera"><span class="header-section-number">2.4.3</span> Recordar el impacto de la cartera</a></li>
+  <li><a href="#recuperación-precisión-y-exactitud-accuracy" id="toc-recuperación-precisión-y-exactitud-accuracy" class="nav-link" data-scroll-target="#recuperación-precisión-y-exactitud-accuracy"><span class="header-section-number">2.4.4</span> Recuperación, precisión y exactitud (accuracy)</a></li>
+  <li><a href="#práctica-2" id="toc-práctica-2" class="nav-link" data-scroll-target="#práctica-2"><span class="header-section-number">2.4.5</span> Práctica</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Regresión logistica para incumplimiento</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>Una vez que los datos del préstamo estén completamente preparadas, analizaremos el modelo de regresión logística, que es un estándar en la modelización de riesgos. Entenderemos los componentes de este modelo y cómo calificar su desempeño. Una vez que hayamos creado predicciones, podemos explorar el impacto financiero de utilizar este modelo.</p>
+<section id="regresión-logística-para-la-probabilidad-de-incumplimiento" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="regresión-logística-para-la-probabilidad-de-incumplimiento"><span class="header-section-number">2.1</span> Regresión logística para la probabilidad de incumplimiento</h2>
+<p>Ahora que ya hemos eliminado tanto valores atípicos como los datos faltantes de nuestro conjunto de datos, podemos comenzar a modelar para predecir la probabilidad de incumplimiento.</p>
+<section id="probabilidad-de-incumplimiento" class="level3" data-number="2.1.1">
+<h3 data-number="2.1.1" class="anchored" data-anchor-id="probabilidad-de-incumplimiento"><span class="header-section-number">2.1.1</span> Probabilidad de incumplimiento</h3>
+<p>Recuerde que la probabilidad de incumplimiento es la probabilidad de que alguien no pague un préstamo. Esto se expresa como una probabilidad que es un valor entre cero y uno. Estas probabilidades están asociadas con nuestra columna de estado del préstamo, donde un 1 es un incumplimiento y un 0 es un no incumplimiento.</p>
+</section>
+<section id="predecir-probabilidades" class="level3" data-number="2.1.2">
+<h3 data-number="2.1.2" class="anchored" data-anchor-id="predecir-probabilidades"><span class="header-section-number">2.1.2</span> Predecir probabilidades</h3>
+<p>Para obtener estas probabilidades, entrenamos modelos de aprendizaje automático en nuestras columnas de datos crediticios, conocidas como características, para que los modelos aprendan a usar los datos para predecir las probabilidades.</p>
+<table class="table">
+<colgroup>
+<col style="width: 34%">
+<col style="width: 38%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Probabilidad de incumplimiento</th>
+<th>Interpretación</th>
+<th>Predicción loan_status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0.4</td>
+<td>Poco probable que incumpla</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>0.90</td>
+<td>Es muy probable que incumpla</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>0.1</td>
+<td>Es muy poco probable que incumpla</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>Este tipo de modelos se conocen como modelos de clasificación, donde la clase es predeterminada o no predeterminada. En la industria se utilizan frencuentemente dos modelos. Se trata de <strong><em>regresiones logísticas</em></strong> y <strong><em>árboles de decisión</em></strong>. Ambos modelos pueden predecir la probabilidad de incumplimiento y decirnos qué tan improbable es cada columna para las predicciones.</p>
+<p><img src="fig4.png" class="img-fluid"></p>
+</section>
+<section id="regresión-logística" class="level3" data-number="2.1.3">
+<h3 data-number="2.1.3" class="anchored" data-anchor-id="regresión-logística"><span class="header-section-number">2.1.3</span> Regresión Logística</h3>
+<p>La regresión logística es como una regresión líneal pero solo produce un valor entre 0 y 1.</p>
+<p><span class="math display">\[
+\underbrace{Y = \beta_0
++ (\beta_1*x_1) + (\beta_2*X_2) + . . . }_{\mbox{Regresión Lineal}} \hspace{1cm} \underbrace{P(loan_status = 1) = \frac{1}{1 + e^{-Y}}}_{\mbox{Regresión Logística}}
+\]</span></p>
+<p>Observe que la ecuación de la regresión líneal es en realidad parte de la regresión logística. Las regresiones logísticas funcionan mejor con los datos cuando lo que determina un incumplimiento o no incumplimiento puede variar mucho.</p>
+<p><img src="fig5.png" class="img-fluid"></p>
+<p>Piense aquí en la intersección con el eje <span class="math inline">\(y\)</span>, que son las probabilidades logarítmicas de no incumplimiento. Esta es otra forma de expresar la probabilidad general de no incumplimiento.</p>
+</section>
+<section id="entrenar-una-regresión-logística" class="level3" data-number="2.1.4">
+<h3 data-number="2.1.4" class="anchored" data-anchor-id="entrenar-una-regresión-logística"><span class="header-section-number">2.1.4</span> Entrenar una regresión logística</h3>
+<p>En este curso, utilizamos la regresión logística dentro de <code>scikit learn</code>.</p>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>El uso del modelo es fácil. Como cualquier función, puedes pasar parámetros o no. El parámetro del solucionador es un optimizador, al igual que el solucionador en Excel. LBFGS es el valor predeterminado.</p>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>clf_logistic <span class="op">=</span> LogisticRegression(solver <span class="op">=</span> <span class="st">"lbfgs"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Para entrenar el modelo, llamamos al método de ajuste (<code>fit</code>). Dentro del método, debemos proporcionar al modelo columnas de entrenamiento (training_columns) y etiquetas de entrenamiento (training_labels). Usamos <code>ravel</code> de <code>numpy</code> para hacer que las etiquetas sean una matriz unidimensional en lugar de un marco de datos. En nuestros datos crediticios, las columnas de capacitación son todas las columnas excepto el estado del préstamo. El estado del préstamo contiene las etiquetas.</p>
+</section>
+<section id="entrenamiento-y-prueba" class="level3" data-number="2.1.5">
+<h3 data-number="2.1.5" class="anchored" data-anchor-id="entrenamiento-y-prueba"><span class="header-section-number">2.1.5</span> Entrenamiento y prueba</h3>
+<p>Generalmente, en el Machine Learning, dividimos todo nuestro conjunto de datos en dos conjuntos de datos individuales. Son el conjunto de entrenamiento (train)y el conjunto de prueba (test).</p>
+<table class="table">
+<colgroup>
+<col style="width: 26%">
+<col style="width: 47%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Subconjunto de datos</th>
+<th>Uso</th>
+<th>Porción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Train</td>
+<td>Aprenda de los datos para generar predicciones</td>
+<td>60%</td>
+</tr>
+<tr class="even">
+<td>Test</td>
+<td>pruebe el aprendizaje con nuevos datos.</td>
+<td>40%</td>
+</tr>
+</tbody>
+</table>
+<p>Usamos la mayoría de los datos para entrenar nuestros modelos, para que aprendan tanto como sea posible de los datos. Nuestro conjunto de pruebas se utiliza para ver cómo reacciona nuestro modelo a nuevos datos que no ha visto antes. Esto es como si los estudiantes aprendieran en la escuela. Aprenderán hechos de un tema y serán evaluados sobre diferentes hechos de ese mismo tema. De esta manera podemos evaluar su dominio del tema.</p>
+</section>
+<section id="crear-los-conjuntos-de-entrenamiento-y-prueba" class="level3" data-number="2.1.6">
+<h3 data-number="2.1.6" class="anchored" data-anchor-id="crear-los-conjuntos-de-entrenamiento-y-prueba"><span class="header-section-number">2.1.6</span> Crear los conjuntos de entrenamiento y prueba</h3>
+<p>Lo primero que hacemos es separar nuestros datos en columnas y etiquetas de entrenamiento.</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>cr_loan <span class="op">=</span> pd.read_csv(<span class="st">"cr_loan2.csv"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> cr_loan.drop(<span class="st">"loan_status"</span>, axis <span class="op">=</span> <span class="dv">1</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> cr_loan[[<span class="st">"loan_status"</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Aquí, lo hemos asignado como X e <span class="math inline">\(y\)</span>. Una vez hecho esto, usamos la función <code>train_test_split()</code> den tren de prueba dentro del paquete <code>scikit-learn</code>. Echemos un vistazo al código.</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span> <span class="fl">.4</span>,random_state<span class="op">=</span><span class="dv">123</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>¿Recuerda que dije que necesitamos columnas de entrenamiento y etiquetas para nuestro modelo? Lo necesitamos tanto para el conjunto de entrenamiento como para el conjunto de prueba, que se crean fácilmente con una línea de código. Dentro de esta función, establecemos el porcentaje de los datos que se utilizarán como conjunto de prueba (<code>test_size</code>)y un número utilizado como semilla aleatoria (<code>random_state</code>) para la reproductibilidad.</p>
+</section>
+<section id="practica" class="level3" data-number="2.1.7">
+<h3 data-number="2.1.7" class="anchored" data-anchor-id="practica"><span class="header-section-number">2.1.7</span> Practica</h3>
+<p>Creemos los conjuntos de datos <span class="math inline">\(X\)</span> e <span class="math inline">\(y\)</span></p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>cr_loan_clean <span class="op">=</span> pd.read_csv(<span class="st">"cr_loan_w2.csv"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> cr_loan_clean[[<span class="st">"loan_int_rate"</span>]]</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> cr_loan_clean[[<span class="st">"loan_status"</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Ahora creamos y ajustamos un modelo de regresión logística a los datos de entrenamiento y llamemoslo <code>clf_logistic_single</code>.</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>clf_logistic_single <span class="op">=</span> LogisticRegression(solver <span class="op">=</span><span class="st">'lbfgs'</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>clf_logistic_single.fit(X, np.ravel(y))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<style>#sk-container-id-1 {color: black;background-color: white;}#sk-container-id-1 pre{padding: 0;}#sk-container-id-1 div.sk-toggleable {background-color: white;}#sk-container-id-1 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-1 label.sk-toggleable__label-arrow:before {content: "▸";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-1 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-1 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-1 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: "▾";}#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-1 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-1 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-1 div.sk-parallel-item::after {content: "";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-serial::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-1 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-1 div.sk-item {position: relative;z-index: 1;}#sk-container-id-1 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-1 div.sk-item::before, #sk-container-id-1 div.sk-parallel-item::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-1 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-1 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-1 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-1 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-1 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-1 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-1 div.sk-label-container {text-align: center;}#sk-container-id-1 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-1 div.sk-text-repr-fallback {display: none;}</style><div id="sk-container-id-1" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>LogisticRegression()</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox" checked=""><label for="sk-estimator-id-1" class="sk-toggleable__label sk-toggleable__label-arrow">LogisticRegression</label><div class="sk-toggleable__content"><pre>LogisticRegression()</pre></div></div></div></div></div>
+</div>
+</div>
+<p>Imprimamos los parámetros del modelo</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(clf_logistic_single.get_params())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>{'C': 1.0, 'class_weight': None, 'dual': False, 'fit_intercept': True, 'intercept_scaling': 1, 'l1_ratio': None, 'max_iter': 100, 'multi_class': 'auto', 'n_jobs': None, 'penalty': 'l2', 'random_state': None, 'solver': 'lbfgs', 'tol': 0.0001, 'verbose': 0, 'warm_start': False}</code></pre>
+</div>
+</div>
+<p>Imprimimos la intersección del modelo</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(clf_logistic_single.intercept_)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[-4.45785901]</code></pre>
+</div>
+</div>
+</section>
+<section id="regresión-logística-multivariada" class="level3" data-number="2.1.8">
+<h3 data-number="2.1.8" class="anchored" data-anchor-id="regresión-logística-multivariada"><span class="header-section-number">2.1.8</span> Regresión logística multivariada</h3>
+<p>Generalmente, no utilizará sólo <code>loan_int_rate</code> para predecir la probabilidad de incumplimiento. Querrás utilizar todos los datos que tienes para hacer predicciones.</p>
+<p>Con esto en mente, intentamos entrenar un nuevo modelo con diferentes columnas, llamadas características, a partir de los datos <code>cr_loan_clean</code>. ¿Se diferenciará este modelo del primero? Para ello, puede comprobar facilmente el <code>.intercept_</code> de la regresión logística. Recuerde que esta es la intersección y de la función y las probabilidades logarítmicas generales de no incumplimiento.</p>
+<p>Creemos un nuevo conjunto de datos <code>X</code> con <code>loan_int_rate</code> y <code>person_emp_length</code>. Guárdelo como <code>X_multi</code>.</p>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>X_multi <span class="op">=</span> cr_loan_clean[[<span class="st">"loan_int_rate"</span>, <span class="st">"person_emp_length"</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Creemos un conjunto de datos <code>y</code> con solo <code>loan_status</code>.</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> cr_loan_clean[[<span class="st">"loan_status"</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Ahora, creemos y entrenemos un nuevo modelo de Regresión logística.</p>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>clf_logistic_multi <span class="op">=</span> LogisticRegression(solver<span class="op">=</span><span class="st">'lbfgs'</span>).fit(X_multi, np.ravel(y))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Luego, imprimamos la intersección del modelo</p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(clf_logistic_multi.intercept_)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[-4.21645549]</code></pre>
+</div>
+</div>
+<section id="creación-de-conjuntos-de-entrenamiento-y-prueba" class="level4" data-number="2.1.8.1">
+<h4 data-number="2.1.8.1" class="anchored" data-anchor-id="creación-de-conjuntos-de-entrenamiento-y-prueba"><span class="header-section-number">2.1.8.1</span> Creación de conjuntos de entrenamiento y prueba</h4>
+<p>Comenzamos creando el conjunto de datos <code>X</code> utilizando la tasa de interés, la duración de empleo y los ingresos. Cree el conjunto <code>y</code> utilizando el estado de préstamo.</p>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> cr_loan_clean[[<span class="st">'loan_int_rate'</span>,<span class="st">'person_emp_length'</span>,<span class="st">'person_income'</span>]]</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> cr_loan_clean[[<span class="st">'loan_status'</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Usemos test_train_split para crear el conjunto de entrenamiento y prueba.</p>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span><span class="fl">.4</span>, random_state<span class="op">=</span><span class="dv">123</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Luego creamos y adaptamos el modelo de regresión logística.</p>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>clf_logistic <span class="op">=</span> LogisticRegression(solver<span class="op">=</span><span class="st">'lbfgs'</span>).fit(X_train, np.ravel(y_train))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Por último, imprimimos los coeficientes del modelo</p>
+<div class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(clf_logistic.coef_)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[ 1.28517496e-09 -2.27622202e-09 -2.17211991e-05]]</code></pre>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="predecir-la-probabilidad-de-incumplimiento" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="predecir-la-probabilidad-de-incumplimiento"><span class="header-section-number">2.2</span> Predecir la probabilidad de incumplimiento</h2>
+<p>Hasta ahora, hemos entrenado una regresión logística con nuestros datos crediticios y hemos analizado algunos atributos del modelo. Ahora, analicemos la estructura del modelo y cómo crear predicciones.</p>
+<section id="coeficientes-de-regresión-logística" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="coeficientes-de-regresión-logística"><span class="header-section-number">2.2.1</span> Coeficientes de regresión logística</h3>
+<p>En el ejercicio anterior, vimos los siguientes interceptos y coeficientes para nuestro modelo. Estos coeficientes, determinan la importancia de cada columna. Estos valores son parte de la fórmula de regresión logística que calcula la probabilidad de incumplimiento que vemos aquí.</p>
+<p><span class="math display">\[
+P(loan_status = 1) = \frac{1}{1 + e^{-(-4.22 + (1.29e^{-09}*int\_rate) + (-2.28e^{-09}*Emp\_Length) + (-2.17e^{-05}*Income))}}
+\]</span></p>
+<p>Cada coeficiente se multiplica por los valores de la columna y luego se suma junto con la intersección. Luego, solamente se realiza la sustitución en el modelo. El resultado será la probabilidad de incumplimiento.</p>
+</section>
+<section id="interpretación-de-coeficientes" class="level3" data-number="2.2.2">
+<h3 data-number="2.2.2" class="anchored" data-anchor-id="interpretación-de-coeficientes"><span class="header-section-number">2.2.2</span> Interpretación de coeficientes</h3>
+<p>Consideremos la duración de empleo (emp_length) como ejemplo. Suponga que:</p>
+<ul>
+<li><p>Intercepto = <span class="math inline">\(-1.02\)</span></p></li>
+<li><p>coeficiente para employment_length = <span class="math inline">\(-0.056\)</span></p></li>
+</ul>
+<p>Lo que este coeficiente nos dice son las probabilidades logarítmicas de no incumplimiento. Esto significa que por cada año de aumento en la duración del empleo, la persona tiene menos probabilidad de incumplimiento por un factor del coeficiente.</p>
+<p>Digamos que tenemos 3 valores para la duración del empleo y queremos saber cómo afecta nuestra probabilidad de incumplimiento al observar los coeficientes.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Intercept</th>
+<th>person_emp_length</th>
+<th>valor*coef</th>
+<th>probability of default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>-1.02</td>
+<td>10</td>
+<td>(10*-0.06)</td>
+<td>0.17</td>
+</tr>
+<tr class="even">
+<td>-1.02</td>
+<td>11</td>
+<td>(11*-0.06)</td>
+<td>0.16</td>
+</tr>
+<tr class="odd">
+<td>-1.02</td>
+<td>12</td>
+<td>(12*-0.06)</td>
+<td>0.15</td>
+</tr>
+</tbody>
+</table>
+<p>Lo que vemos aquí es que cuanto mayor es la duración del empleo de una persona, es menos probable que incumpla.</p>
+</section>
+<section id="usar-columnas-no-numéricas" class="level3" data-number="2.2.3">
+<h3 data-number="2.2.3" class="anchored" data-anchor-id="usar-columnas-no-numéricas"><span class="header-section-number">2.2.3</span> Usar columnas no numéricas</h3>
+<p>Ya que estamos hablando de números, vale la pena mencionar que hasta ahora solo hemos usado columnas numéricas para entrenar modelos. Nuestros datos tamboién contienen columnas no numéricas, como la intención de préstamo, que utiliza palabras para describir cómo la persona planea usar el dinero que le prestamos.</p>
+<div class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>cr_loan[<span class="st">"loan_intent"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<pre><code>0               PERSONAL
+1              EDUCATION
+2                MEDICAL
+3                MEDICAL
+4                MEDICAL
+              ...       
+32576           PERSONAL
+32577           PERSONAL
+32578    HOMEIMPROVEMENT
+32579           PERSONAL
+32580            MEDICAL
+Name: loan_intent, Length: 32581, dtype: object</code></pre>
+</div>
+</div>
+<p>En <code>Python</code>, a diferencia de <code>R</code>, los modelos de aprendizaje automático no saben cómo usar estos valores no numéricos. Por lo tanto, tenemos que realizar una operación llamada codificación <strong><em>one-hot</em></strong> antes de poder usarlos.</p>
+</section>
+<section id="codificación-one-hot" class="level3" data-number="2.2.4">
+<h3 data-number="2.2.4" class="anchored" data-anchor-id="codificación-one-hot"><span class="header-section-number">2.2.4</span> Codificación one-hot</h3>
+<p>La codificación <strong><em>one-hot</em></strong> suena complicada, pero es realmente simple. La idea principal es representar una cadena con un valor numérico. Así es como funciona. Pensemos en la columna de intención de préstamo donde cada préstamo tiene su propio valor de intención como una cadena.</p>
+<p><img src="loan_intent.png" class="img-fluid"></p>
+<p>Esta muestra tiene eduación, medicina y riesgo.</p>
+<p>Con la codificación one-hot, obtenemos un nuevo conjunto de columnas donde cada valor de la intención de préstamo ahora es su propia columna.</p>
+<p><img src="loan_intent_1.png" class="img-fluid"></p>
+<p>Note que cada nueva columna se crea separando los préstamos con cada valor de intención y haciendo que el valor de la nueva columna sea 0 o 1. Por ejemplo, si la intención del préstamo era eduación, ahora se representa con un 1 en la columna de educación, aahora se representa con un 1 en la columna de eduación de intención del préstamo. De esta manera, hay un valor candente.</p>
+</section>
+<section id="función-get-dummies" class="level3" data-number="2.2.5">
+<h3 data-number="2.2.5" class="anchored" data-anchor-id="función-get-dummies"><span class="header-section-number">2.2.5</span> Función Get dummies</h3>
+<p>Para codificar nuestras columnas de cadena, usamos la función <code>get_dummies()</code> que pertenece a <code>pandas</code>. Primero, separamos las columnas numéricas y no numéricas de los datos en dos conjuntos.</p>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># separamos las columnas numéricas</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>cred_num <span class="op">=</span> cr_loan.select_dtypes(exclude <span class="op">=</span> [<span class="st">"object"</span>])</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>cred_num.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">person_age</th>
+<th data-quarto-table-cell-role="th">person_income</th>
+<th data-quarto-table-cell-role="th">person_emp_length</th>
+<th data-quarto-table-cell-role="th">loan_amnt</th>
+<th data-quarto-table-cell-role="th">loan_int_rate</th>
+<th data-quarto-table-cell-role="th">loan_status</th>
+<th data-quarto-table-cell-role="th">loan_percent_income</th>
+<th data-quarto-table-cell-role="th">cb_person_cred_hist_length</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>22</td>
+<td>59000</td>
+<td>123.0</td>
+<td>35000</td>
+<td>16.02</td>
+<td>1</td>
+<td>0.59</td>
+<td>3</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>21</td>
+<td>9600</td>
+<td>5.0</td>
+<td>1000</td>
+<td>11.14</td>
+<td>0</td>
+<td>0.10</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>25</td>
+<td>9600</td>
+<td>1.0</td>
+<td>5500</td>
+<td>12.87</td>
+<td>1</td>
+<td>0.57</td>
+<td>3</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>23</td>
+<td>65500</td>
+<td>4.0</td>
+<td>35000</td>
+<td>15.23</td>
+<td>1</td>
+<td>0.53</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>24</td>
+<td>54400</td>
+<td>8.0</td>
+<td>35000</td>
+<td>14.27</td>
+<td>1</td>
+<td>0.55</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Separamos las columnas no numéricas</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>cred_cat <span class="op">=</span> cr_loan.select_dtypes(include <span class="op">=</span> [<span class="st">"object"</span>])</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>cred_cat.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">person_home_ownership</th>
+<th data-quarto-table-cell-role="th">loan_intent</th>
+<th data-quarto-table-cell-role="th">loan_grade</th>
+<th data-quarto-table-cell-role="th">cb_person_default_on_file</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>RENT</td>
+<td>PERSONAL</td>
+<td>D</td>
+<td>Y</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>OWN</td>
+<td>EDUCATION</td>
+<td>B</td>
+<td>N</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>MORTGAGE</td>
+<td>MEDICAL</td>
+<td>C</td>
+<td>N</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>RENT</td>
+<td>MEDICAL</td>
+<td>C</td>
+<td>N</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>RENT</td>
+<td>MEDICAL</td>
+<td>C</td>
+<td>Y</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Luego usamos la función <code>get_dummies()</code> para codificar solo las columnas no numéricas.</p>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># One-hot a columnas no numéricas</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>cred_cat_onehot <span class="op">=</span> pd.get_dummies(cred_cat)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>cred_cat_onehot.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">person_home_ownership_MORTGAGE</th>
+<th data-quarto-table-cell-role="th">person_home_ownership_OTHER</th>
+<th data-quarto-table-cell-role="th">person_home_ownership_OWN</th>
+<th data-quarto-table-cell-role="th">person_home_ownership_RENT</th>
+<th data-quarto-table-cell-role="th">loan_intent_DEBTCONSOLIDATION</th>
+<th data-quarto-table-cell-role="th">loan_intent_EDUCATION</th>
+<th data-quarto-table-cell-role="th">loan_intent_HOMEIMPROVEMENT</th>
+<th data-quarto-table-cell-role="th">loan_intent_MEDICAL</th>
+<th data-quarto-table-cell-role="th">loan_intent_PERSONAL</th>
+<th data-quarto-table-cell-role="th">loan_intent_VENTURE</th>
+<th data-quarto-table-cell-role="th">loan_grade_A</th>
+<th data-quarto-table-cell-role="th">loan_grade_B</th>
+<th data-quarto-table-cell-role="th">loan_grade_C</th>
+<th data-quarto-table-cell-role="th">loan_grade_D</th>
+<th data-quarto-table-cell-role="th">loan_grade_E</th>
+<th data-quarto-table-cell-role="th">loan_grade_F</th>
+<th data-quarto-table-cell-role="th">loan_grade_G</th>
+<th data-quarto-table-cell-role="th">cb_person_default_on_file_N</th>
+<th data-quarto-table-cell-role="th">cb_person_default_on_file_Y</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Unimos los dos conjuntos y el resultado es un conjunto de datos completo que esta listo para aplicarle el Machine Learning.</p>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>cr_loan_prep <span class="op">=</span> pd.concat([cred_num, cred_cat_onehot], axis <span class="op">=</span> <span class="dv">1</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>cr_loan_prep.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">person_age</th>
+<th data-quarto-table-cell-role="th">person_income</th>
+<th data-quarto-table-cell-role="th">person_emp_length</th>
+<th data-quarto-table-cell-role="th">loan_amnt</th>
+<th data-quarto-table-cell-role="th">loan_int_rate</th>
+<th data-quarto-table-cell-role="th">loan_status</th>
+<th data-quarto-table-cell-role="th">loan_percent_income</th>
+<th data-quarto-table-cell-role="th">cb_person_cred_hist_length</th>
+<th data-quarto-table-cell-role="th">person_home_ownership_MORTGAGE</th>
+<th data-quarto-table-cell-role="th">person_home_ownership_OTHER</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">loan_intent_VENTURE</th>
+<th data-quarto-table-cell-role="th">loan_grade_A</th>
+<th data-quarto-table-cell-role="th">loan_grade_B</th>
+<th data-quarto-table-cell-role="th">loan_grade_C</th>
+<th data-quarto-table-cell-role="th">loan_grade_D</th>
+<th data-quarto-table-cell-role="th">loan_grade_E</th>
+<th data-quarto-table-cell-role="th">loan_grade_F</th>
+<th data-quarto-table-cell-role="th">loan_grade_G</th>
+<th data-quarto-table-cell-role="th">cb_person_default_on_file_N</th>
+<th data-quarto-table-cell-role="th">cb_person_default_on_file_Y</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>22</td>
+<td>59000</td>
+<td>123.0</td>
+<td>35000</td>
+<td>16.02</td>
+<td>1</td>
+<td>0.59</td>
+<td>3</td>
+<td>0</td>
+<td>0</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>21</td>
+<td>9600</td>
+<td>5.0</td>
+<td>1000</td>
+<td>11.14</td>
+<td>0</td>
+<td>0.10</td>
+<td>2</td>
+<td>0</td>
+<td>0</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>25</td>
+<td>9600</td>
+<td>1.0</td>
+<td>5500</td>
+<td>12.87</td>
+<td>1</td>
+<td>0.57</td>
+<td>3</td>
+<td>1</td>
+<td>0</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>23</td>
+<td>65500</td>
+<td>4.0</td>
+<td>35000</td>
+<td>15.23</td>
+<td>1</td>
+<td>0.53</td>
+<td>2</td>
+<td>0</td>
+<td>0</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>24</td>
+<td>54400</td>
+<td>8.0</td>
+<td>35000</td>
+<td>14.27</td>
+<td>1</td>
+<td>0.55</td>
+<td>4</td>
+<td>0</td>
+<td>0</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 27 columns</p>
+</div>
+</div>
+</div>
+</section>
+<section id="prediciendo-el-futuro" class="level3" data-number="2.2.6">
+<h3 data-number="2.2.6" class="anchored" data-anchor-id="prediciendo-el-futuro"><span class="header-section-number">2.2.6</span> Prediciendo el futuro</h3>
+<p>Una vez nuestro modelo está entrenado, utilizamos el método <code>predict_proba()</code> en datos de prueba para hacer predicciones. Esto crea un conjunto de probabilidades de no incumplimiento e incumplimiento. Claramente el resultado será una serie de números entre 0 y 1.</p>
+</section>
+<section id="práctica" class="level3" data-number="2.2.7">
+<h3 data-number="2.2.7" class="anchored" data-anchor-id="práctica"><span class="header-section-number">2.2.7</span> Práctica</h3>
+<p>Imprimamos las nuevas columnas del conjunto de datos <code>cr_loan_prep</code></p>
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(cr_loan_prep.columns)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Index(['person_age', 'person_income', 'person_emp_length', 'loan_amnt',
+       'loan_int_rate', 'loan_status', 'loan_percent_income',
+       'cb_person_cred_hist_length', 'person_home_ownership_MORTGAGE',
+       'person_home_ownership_OTHER', 'person_home_ownership_OWN',
+       'person_home_ownership_RENT', 'loan_intent_DEBTCONSOLIDATION',
+       'loan_intent_EDUCATION', 'loan_intent_HOMEIMPROVEMENT',
+       'loan_intent_MEDICAL', 'loan_intent_PERSONAL', 'loan_intent_VENTURE',
+       'loan_grade_A', 'loan_grade_B', 'loan_grade_C', 'loan_grade_D',
+       'loan_grade_E', 'loan_grade_F', 'loan_grade_G',
+       'cb_person_default_on_file_N', 'cb_person_default_on_file_Y'],
+      dtype='object')</code></pre>
+</div>
+</div>
+</section>
+<section id="recordemos-como-predecir-la-probabilidad-de-incumplimiento" class="level3" data-number="2.2.8">
+<h3 data-number="2.2.8" class="anchored" data-anchor-id="recordemos-como-predecir-la-probabilidad-de-incumplimiento"><span class="header-section-number">2.2.8</span> Recordemos como predecir la probabilidad de incumplimiento</h3>
+<div class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>cr_loan_clean <span class="op">=</span> pd.read_csv(<span class="st">"cr_loan_w2.csv"</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> cr_loan_clean[[<span class="st">"loan_intent_DEBTCONSOLIDATION"</span>, <span class="st">"loan_intent_EDUCATION"</span>, <span class="st">"loan_intent_HOMEIMPROVEMENT"</span>, <span class="st">"loan_intent_MEDICAL"</span>, <span class="st">"loan_intent_PERSONAL"</span>,<span class="st">"loan_intent_VENTURE"</span>,<span class="st">"person_home_ownership_MORTGAGE"</span>,<span class="st">"person_home_ownership_OTHER"</span>,<span class="st">"person_home_ownership_OWN"</span>, <span class="st">"person_home_ownership_RENT"</span>]]</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> cr_loan_clean[[<span class="st">"loan_status"</span>]]</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span> <span class="fl">.4</span>,random_state<span class="op">=</span><span class="dv">123</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Entrenemos el modelo de regresión logistica con los datos de entrenamiento.</p>
+<div class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>clf_logistic <span class="op">=</span> LogisticRegression(solver<span class="op">=</span><span class="st">'lbfgs'</span>).fit(X_train, np.ravel(y_train))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Ahora creamos predicciones de probabilidad para el estado del prestamó utilizando datos de prueba.</p>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>preds <span class="op">=</span> clf_logistic.predict_proba(X_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Luego, creemos un marco de datos de las predicciones y valores reales</p>
+<div class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>preds_df <span class="op">=</span> pd.DataFrame(preds[:,<span class="dv">1</span>][<span class="dv">0</span>:<span class="dv">1000</span>], columns <span class="op">=</span> [<span class="st">'prob_default'</span>])</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>true_df <span class="op">=</span> y_test.head(n<span class="op">=</span><span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Por último, concatenamos e imprimimos los marcos de datos para comparación.</p>
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pd.concat([true_df.reset_index(drop <span class="op">=</span> <span class="va">True</span>), preds_df], axis <span class="op">=</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     loan_status  prob_default
+0              1      0.401990
+1              1      0.401990
+2              0      0.224612
+3              0      0.224612
+4              1      0.255862
+..           ...           ...
+995            1      0.224612
+996            0      0.166742
+997            0      0.255862
+998            0      0.224612
+999            0      0.116630
+
+[1000 rows x 2 columns]</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="desempeño-del-modelo-de-crédito" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="desempeño-del-modelo-de-crédito"><span class="header-section-number">2.3</span> Desempeño del modelo de crédito</h2>
+<p>Ya vimos predicciones de probabilidad de incumplimiento frenta a valores reales del estado del préstamo, pero ¿cómo analizamos el desempeño de nuestro modelo?</p>
+<section id="puntuación-de-la-presición-accurary-del-modelo" class="level3" data-number="2.3.1">
+<h3 data-number="2.3.1" class="anchored" data-anchor-id="puntuación-de-la-presición-accurary-del-modelo"><span class="header-section-number">2.3.1</span> Puntuación de la presición (accurary) del modelo</h3>
+<p>La forma más sencilla de analizar el rendimiento es con el accuracy. La precisión es el número de predicciones correctas dividido por el número total de predicciones.</p>
+<p><span class="math display">\[
+accuracy = \frac{\mbox{número total de predicciones correctas}}{\mbox{total de predicciones}}
+\]</span></p>
+<p>Una forma de comprobar esto es utilizar el método de scikit-learn en la regresión logística.</p>
+<div class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>clf_logistic.score(X_test, y_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<pre><code>0.7805498981670062</code></pre>
+</div>
+</div>
+<p>Esto se utiliza en el modelo entrenado y devuelve la precisión promedio del conjunto de prueba. El uso del método de puntuación mostrará esta precisión como porcentaje. En este ejemplo, nos dice que el 78.1% de los préstamos se predijeron correctamente.</p>
+</section>
+<section id="gráficos-de-curvas-roc" class="level3" data-number="2.3.2">
+<h3 data-number="2.3.2" class="anchored" data-anchor-id="gráficos-de-curvas-roc"><span class="header-section-number">2.3.2</span> Gráficos de curvas ROC</h3>
+<p>Los gráficos ROC son una excelente manera de visualizar el rendimienrto de nuestro modelo. Trazan la tasa sde verdaderos positivos, el porcentaje de impagos pronósgticados correctamente, frente a la tasa de falson positivos, el porcentaje de impagos predichos incorrectamente.</p>
+<p>Usando la función <code>roc_curve</code> de <code>scikit.learrn</code>, creamos dos valores y los umbrales todos a la vez. A partir de ahí utilizamos un gráfico de lineas normal para ver los resultados. La línea azul punteada representa una predicción aleatoria y la línea naranja representa las predicciones de nuestro modelo.</p>
+<div class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_curve</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>resultados <span class="op">=</span> pd.concat([true_df.reset_index(drop <span class="op">=</span> <span class="va">True</span>), preds_df], axis <span class="op">=</span> <span class="dv">1</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>prob_default <span class="op">=</span> resultados[<span class="st">"prob_default"</span>]</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>fallout, sensitivity, thresholds <span class="op">=</span> roc_curve(y_test.head(n<span class="op">=</span><span class="dv">1000</span>),prob_default)</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>plt.plot(fallout, sensitivity, color <span class="op">=</span> <span class="st">"darkorange"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="summary_files/figure-html/cell-30-output-1.png" width="571" height="411"></p>
+</div>
+</div>
+<p>Los gráficos ROC se interpretan obsevando qué tan lejos está la curva del modelo de la linea azul punteada que se muestra aquí, que representa la predicción aleatoria. Este movimiento de alejamiento de la línea se llama elevación. Cuanto más elevación tengamos, mayor será el área bajo la curva. El AUC es el aréa calculada entre la curva y las predicción aleatoria. Este es un indicador directo de qué tan bien nuestro modelo hace predicciones.</p>
+</section>
+<section id="umbrales-predeterminados" class="level3" data-number="2.3.3">
+<h3 data-number="2.3.3" class="anchored" data-anchor-id="umbrales-predeterminados"><span class="header-section-number">2.3.3</span> Umbrales Predeterminados</h3>
+<p>Para analizar más a fondo el rendimiento, debemos decidir qué rango de probabilidad es un incumplimiento y cuál no es un incumplimiento. Digamos que decidimos que cualquier probabilidad superior a 0.5 es un valor predeterminado, y cualquier probabilidad inferior a eso no es un valor predeterminado.</p>
+<p><img src="umbral_prob.png" class="img-fluid"></p>
+</section>
+<section id="establecer-un-umbral" class="level3" data-number="2.3.4">
+<h3 data-number="2.3.4" class="anchored" data-anchor-id="establecer-un-umbral"><span class="header-section-number">2.3.4</span> Establecer un umbral</h3>
+<p>Una vez definido el umbral, debemos volver a etiquetar nuestros préstamos en función de ese umbral. Para eso, primero necesitaremos crear una variable para almacenar las probabilidades predichas.</p>
+<div class="cell" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>preds <span class="op">=</span> clf_logistic.predict_proba(X_test)</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>preds_df <span class="op">=</span> pd.DataFrame(preds[:,<span class="dv">1</span>], columns <span class="op">=</span> [<span class="st">'prob_default'</span>])</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>preds_df[<span class="st">"loan_status"</span>] <span class="op">=</span> preds_df[<span class="st">"prob_default"</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x:<span class="dv">1</span> <span class="cf">if</span> x <span class="op">&gt;</span> <span class="fl">0.5</span> <span class="cf">else</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Luego podemos crear un marco de datos a partir de la segunda columna que contiene las probabilidades de incumplimiento. Luego aplicamos una función rápida para asignar un valor de 1 si la probabilidad de incumplimiento está por encima de nuestro umbral de 0.5. La <code>lambda</code> está ahí solo para decirle a Python que queremos usar una función única sin definirla. El resultado de esto es un marco de datos con nuevos valores para el estado del préstamo según nuestro umbral.</p>
+<div class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>preds_df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="31">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">prob_default</th>
+<th data-quarto-table-cell-role="th">loan_status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>0.401990</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>0.401990</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>0.224612</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>0.224612</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>0.255862</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="informes-de-clasificación-crediticia" class="level3" data-number="2.3.5">
+<h3 data-number="2.3.5" class="anchored" data-anchor-id="informes-de-clasificación-crediticia"><span class="header-section-number">2.3.5</span> Informes de clasificación crediticia</h3>
+<p>Otra función realmente útil para evaluar nuestros modelos es la función informes de clasificación <code>classification_report()</code> de <code>scikit.learn</code>. Esto nos mostrará varias métricas de evaluación diferentes a la vez. Usamos esta función para evaluar nuestro modelo usando nuestros valores verdaderos para el estado del préstamo almacenado en el conjunto <code>y_test</code>, y nuestros valores de estado del préstamo previstos a partir de nuestra regresión logística y el umbral que establecimos.</p>
+<div class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> classification_report</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>target_names <span class="op">=</span> [<span class="st">'Non-Default'</span>, <span class="st">'Default'</span>]</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>classification_report(y_test, preds_df[<span class="st">'loan_status'</span>], target_names<span class="op">=</span>target_names)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="32">
+<pre><code>'              precision    recall  f1-score   support\n\n Non-Default       0.78      1.00      0.88      9198\n     Default       0.00      0.00      0.00      2586\n\n    accuracy                           0.78     11784\n   macro avg       0.39      0.50      0.44     11784\nweighted avg       0.61      0.78      0.68     11784\n'</code></pre>
+</div>
+</div>
+<p>Hay dos métricas realmente útiles en esta tabla, y son la precisión y la recuperación.</p>
+</section>
+<section id="seleccionar-métricas-de-clasificación" class="level3" data-number="2.3.6">
+<h3 data-number="2.3.6" class="anchored" data-anchor-id="seleccionar-métricas-de-clasificación"><span class="header-section-number">2.3.6</span> Seleccionar métricas de clasificación</h3>
+<p>A veces, después de generar el informe, desea seleccionar o almacenar valores específicos dentro del informe. Para hacer esto, puede utilizar la función <code>precision_recall_fscore_support()</code>. Con esta función, podemos recuperar valores predeterminados subconjuntos del informe como lo haríamos con cualquier matriz.</p>
+<div class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> precision_recall_fscore_support</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>precision_recall_fscore_support(y_test, preds_df[<span class="st">"loan_status"</span>])[<span class="dv">1</span>][<span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="33">
+<pre><code>0.0</code></pre>
+</div>
+</div>
+<p>Aquí seleccionamos el segundo valor del segundo conjunto.</p>
+</section>
+<section id="práctica-1" class="level3" data-number="2.3.7">
+<h3 data-number="2.3.7" class="anchored" data-anchor-id="práctica-1"><span class="header-section-number">2.3.7</span> Práctica</h3>
+<section id="informes-de-clasificación" class="level4" data-number="2.3.7.1">
+<h4 data-number="2.3.7.1" class="anchored" data-anchor-id="informes-de-clasificación"><span class="header-section-number">2.3.7.1</span> Informes de clasificación</h4>
+<ul>
+<li><p>Comencemos creando un marco de datos para las probabilidades de incumplimiento de <code>preds</code> y llamelo <code>preds_df</code></p></li>
+<li><p>Reasigne el estado del préstamo al umbral</p></li>
+<li><p>Imprima el recuento de filas para el estado del préstamo</p></li>
+<li><p>Por último, imprima el informe de metricas.</p></li>
+</ul>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Marco de probabilidades preds_df</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>preds_df <span class="op">=</span> pd.DataFrame(preds[:,<span class="dv">1</span>], columns <span class="op">=</span> [<span class="st">'prob_default'</span>])</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="co"># umbral del estado del préstamo</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>preds_df[<span class="st">'loan_status'</span>] <span class="op">=</span> preds_df[<span class="st">'prob_default'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: <span class="dv">1</span> <span class="cf">if</span> x <span class="op">&gt;</span> <span class="fl">0.50</span> <span class="cf">else</span> <span class="dv">0</span>)</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="co">#recuento de filas</span></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(preds_df[<span class="st">'loan_status'</span>].value_counts())</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Reporte de metricas </span></span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>target_names <span class="op">=</span> [<span class="st">'Non-Default'</span>, <span class="st">'Default'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0    11784
+Name: loan_status, dtype: int64</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(classification_report(y_test, preds_df[<span class="st">'loan_status'</span>], target_names<span class="op">=</span>target_names))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              precision    recall  f1-score   support
+
+ Non-Default       0.78      1.00      0.88      9198
+     Default       0.00      0.00      0.00      2586
+
+    accuracy                           0.78     11784
+   macro avg       0.39      0.50      0.44     11784
+weighted avg       0.61      0.78      0.68     11784
+</code></pre>
+</div>
+</div>
+</section>
+<section id="seleccionar-métricas-del-reporte" class="level4" data-number="2.3.7.2">
+<h4 data-number="2.3.7.2" class="anchored" data-anchor-id="seleccionar-métricas-del-reporte"><span class="header-section-number">2.3.7.2</span> Seleccionar métricas del reporte</h4>
+<p>Imprimimos los dos primeros valores del informe</p>
+<div class="cell" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(precision_recall_fscore_support(y_test,preds_df[<span class="st">'loan_status'</span>])[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[0.7805499 0.       ]</code></pre>
+</div>
+</div>
+</section>
+<section id="puntuación-visual" class="level4" data-number="2.3.7.3">
+<h4 data-number="2.3.7.3" class="anchored" data-anchor-id="puntuación-visual"><span class="header-section-number">2.3.7.3</span> Puntuación visual</h4>
+<p>Creé predicciones y almacenarlos en una variable preds</p>
+<div class="cell" data-execution_count="37">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>preds <span class="op">=</span> clf_logistic.predict_proba(X_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Imprima la puntuación (accuracy) del modelo</p>
+<div class="cell" data-execution_count="38">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(clf_logistic.score(X_test, y_test))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.7805498981670062</code></pre>
+</div>
+</div>
+<p>Trazemos la curva ROC de las probabilidades de default</p>
+<div class="cell" data-execution_count="39">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>prob_default <span class="op">=</span> preds[:, <span class="dv">1</span>]</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>fallout, sensitivity, thresholds <span class="op">=</span> roc_curve(y_test, prob_default)</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>plt.plot(fallout, sensitivity, color <span class="op">=</span> <span class="st">'darkorange'</span>)</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, <span class="dv">1</span>], linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="summary_files/figure-html/cell-40-output-1.png" width="571" height="411"></p>
+</div>
+</div>
+<p>Calcular el AUC del modelo utilizando datos de prueba y probabilidades de incumplimiento y guárdelos en auc</p>
+<div class="cell" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_auc_score</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>auc <span class="op">=</span> roc_auc_score(y_test, prob_default)</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>auc</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="40">
+<pre><code>0.6862234627824368</code></pre>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="modelo-de-discriminación-e-impacto" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="modelo-de-discriminación-e-impacto"><span class="header-section-number">2.4</span> Modelo de discriminación e impacto</h2>
+<p>Hemos analizado algunas formas de evaluar nuestra regresión logística. Hablamos más sobre los umbrales y su impacto en el rendimiento de la cartera.</p>
+<section id="matrices-de-confusión" class="level3" data-number="2.4.1">
+<h3 data-number="2.4.1" class="anchored" data-anchor-id="matrices-de-confusión"><span class="header-section-number">2.4.1</span> Matrices de confusión</h3>
+<p>Otra forma de analizar el desempeño de nuestro modelo es con la matriz de confusión. Estos nos mostrará todas nuestras predicciones correctas e incorrectas sobre el estado del préstamo. La matriz de confusión tiene cuatro secciones:</p>
+<ul>
+<li><p>verdaderos positivos,</p></li>
+<li><p>falsos positivos,</p></li>
+<li><p>falsos negativos,</p></li>
+<li><p>verdaderos negativos</p></li>
+</ul>
+<p>Hemos analizado la recuperación de valores predeterminados dentro de los informes de clasificación. Aquí se muestra esa fórmula y dónde reside en la matriz de confusión.</p>
+<table class="table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><strong><em>Verdaderos positivodos</em></strong> (predicted = 0, Actual = 0)</td>
+<td><strong><em>Falsos positivos</em></strong> (predicted = 1, actual = 0)</td>
+</tr>
+<tr class="even">
+<td><strong><em>Falsos Negativos</em></strong> (predicted = 0, Actual = 1)</td>
+<td>V<strong><em>erdaderos positivos</em></strong> (predicted = 1, actual = 1)</td>
+</tr>
+</tbody>
+</table>
+<p><span class="math display">\[
+\begin{eqnarray*}
+Precision(0) &amp;=&amp; \frac{TN}{TN + FN}\\[0.2cm]
+Precision(1) &amp;=&amp; \frac{TP}{TP + FP}\\[0.2cm]
+sensibilidad(0) &amp;=&amp; \frac{TN}{TN + FP}\\[0.2cm]
+sensibilidad(1) &amp;=&amp; \frac{TP}{TP + FN}
+\end{eqnarray*}
+\]</span></p>
+</section>
+<section id="retiro-predeterminado-para-el-estado-del-préstamo" class="level3" data-number="2.4.2">
+<h3 data-number="2.4.2" class="anchored" data-anchor-id="retiro-predeterminado-para-el-estado-del-préstamo"><span class="header-section-number">2.4.2</span> Retiro predeterminado para el estado del préstamo</h3>
+<p>La definición de recuperación predeterminada, tambien llamada sensibilidad, es la proporción de positivos reales predichos correctamente. Antes, recuperábamos este valor del informe de clasificación sin entender cómo se cálcula.</p>
+<p><img src="recall.png" class="img-fluid"></p>
+<p>La sensibilidad se obtiene tomando el número de valores predeterminados verdaderos y dividiéndolo por la suma de los valores predeterminados verdaderos y los valores predeterminados previstos como no predeterminados.</p>
+</section>
+<section id="recordar-el-impacto-de-la-cartera" class="level3" data-number="2.4.3">
+<h3 data-number="2.4.3" class="anchored" data-anchor-id="recordar-el-impacto-de-la-cartera"><span class="header-section-number">2.4.3</span> Recordar el impacto de la cartera</h3>
+<p>Veamos el retiro de valores predeterminados resaltados en rojo en un informe de clasificación.</p>
+<p><img src="recall_1.png" class="img-fluid"></p>
+<p>Este es un ejemplo de un informe de un modelo de regresión logística de bajo rendimiento. En este caso, la proporción de incumplimientos reales predichos por nuestro modelo fue sólo de 4%.</p>
+<p>Imaginemos que tenemos 50,000 préstamos en nuestra cartera y cada unno de ellos tiene un monto total de préstamo de 50 dólares. Como se ve en el informe de clasificación, este modelo tiene un retiro por defecto del 4%.</p>
+<table class="table">
+<colgroup>
+<col style="width: 26%">
+<col style="width: 34%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Monto Préstamo</th>
+<th>Default Predicted/Not Predicted</th>
+<th>Perdida estimada, por incumplimiento</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>50</td>
+<td>0.04/0.96</td>
+<td>(50000x0.96)x50 = $2,400,000</td>
+</tr>
+</tbody>
+</table>
+<p>Entonces, eso significa que predijimos correctamente el 4% de los incumplimientos y predijimos incorrectamente el 96% de los incumplimientos. Si todos nuestros préstamos en default verdadero incumplieran ahora mismo, nuestra pérdida de la cartera sería de 2.4 millones de dólares. Esta pérdida sería algo que no planeamos y sería inesperada.</p>
+</section>
+<section id="recuperación-precisión-y-exactitud-accuracy" class="level3" data-number="2.4.4">
+<h3 data-number="2.4.4" class="anchored" data-anchor-id="recuperación-precisión-y-exactitud-accuracy"><span class="header-section-number">2.4.4</span> Recuperación, precisión y exactitud (accuracy)</h3>
+<p>Cuando se trata de métricas como recuperación, precisión y exactitud, puede resultar complicado encontrar un número óptimo para las tres como objetivo. Eche un vistazo a este gráfico de ejemplo de un modelo de regresión logística sobre los datos crediticios.</p>
+<p><img src="fig6.png" class="img-fluid"></p>
+<p>La línea azul, que es la recuperación predeterminada, comienza muy alta. Esto se debe a que si predecimos que todos los préstamos serán predeterminados, definitivamente predecimos todos nuestros incumplimientos correctamente. También puede ver que cuando la recuperación predeterminada es alta, la mayoría de las veces la recuperación no predeterminada es baja. Inicialmente, tenemos que determinar qué puntajes de cada uno son lo suficientemente buenos para establecer una línea de base para es desempeño.</p>
+</section>
+<section id="práctica-2" class="level3" data-number="2.4.5">
+<h3 data-number="2.4.5" class="anchored" data-anchor-id="práctica-2"><span class="header-section-number">2.4.5</span> Práctica</h3>
+<p>Reasignemos valores <code>loan_status</code> utilizando un umbral de <code>0.5</code> probabilidad de incumplimiento dentro de <code>preds_df</code>.</p>
+<div class="cell" data-execution_count="41">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>preds_df[<span class="st">'loan_status'</span>] <span class="op">=</span> preds_df[<span class="st">'prob_default'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: <span class="dv">1</span> <span class="cf">if</span> x <span class="op">&gt;</span> <span class="fl">0.5</span> <span class="cf">else</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Imprimamos la matriz de confusión de los datos <code>y_test</code> y los nuevos valores del estado del préstamo.</p>
+<div class="cell" data-execution_count="42">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(confusion_matrix(y_test,preds_df[<span class="st">'loan_status'</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[9198    0]
+ [2586    0]]</code></pre>
+</div>
+</div>
+<p>Ahora, hagamos lo mismo, pero reasignando valores <code>loan_status</code> utilizando un umbral de <code>0.4</code></p>
+<div class="cell" data-execution_count="43">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>preds_df[<span class="st">'loan_status'</span>] <span class="op">=</span> preds_df[<span class="st">'prob_default'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: <span class="dv">1</span> <span class="cf">if</span> x <span class="op">&gt;</span> <span class="fl">0.4</span> <span class="cf">else</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="44">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(confusion_matrix(y_test,preds_df[<span class="st">'loan_status'</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[8546  652]
+ [2238  348]]</code></pre>
+</div>
+</div>
+<section id="veamos-como-afectan-los-umbrales-al-rendimiento" class="level4" data-number="2.4.5.1">
+<h4 data-number="2.4.5.1" class="anchored" data-anchor-id="veamos-como-afectan-los-umbrales-al-rendimiento"><span class="header-section-number">2.4.5.1</span> Veamos como afectan los umbrales al rendimiento</h4>
+<p>Reasignemos los valores <code>loan_status</code> utilizando el umbral <code>0.4</code>.</p>
+<div class="cell" data-execution_count="45">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>preds_df[<span class="st">'loan_status'</span>] <span class="op">=</span> preds_df[<span class="st">'prob_default'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: <span class="dv">1</span> <span class="cf">if</span> x <span class="op">&gt;</span> <span class="fl">0.4</span> <span class="cf">else</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Ahora almacenamos el número de valores predeterminados <code>preds_df</code> seleccionando el segundo valor del recuento de valorrs y guárdamos como <code>num_default</code></p>
+<div class="cell" data-execution_count="46">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>num_defaults <span class="op">=</span> preds_df[<span class="st">'loan_status'</span>].value_counts()[<span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Obtenga la tasa de recuperación predeterminada de la matriz de clasificación y guárdela como <code>default_recall</code></p>
+<div class="cell" data-execution_count="47">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>default_recall <span class="op">=</span> precision_recall_fscore_support(y_test,preds_df[<span class="st">'loan_status'</span>])[<span class="dv">1</span>][<span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./intro.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Exploración y preparación de datos de préstamos</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./references.html" class="pagination-link">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>

@@ -1,0 +1,3 @@
+# Preface {.unnumbered}
+
+Si alguna vez solicitó una tarjeta de crédito o un préstamo, sabrá que las empresas financieras procesan su información antes de tomar una decisión. Esto se debe a que otorgarle un préstamo puede tener un impacto financiero grave a su negocio. ¿Pero cómo toman una decisión? En este curso, aprenderá a preparar los datos de una solicitud de crédito. Después de eso, aplicará el aprendizaje automático y las reglas comerciales para reducir el riesgo y garantizar la rentabilidad. Utilizará dos conjuntos de datos que emulan aplicaciones de crédito reales y al mismo tiempo se centrarán en el valor empresarial.
